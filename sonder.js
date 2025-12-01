@@ -255,9 +255,9 @@ function initMapPage() {
       renderMarkers();
     };
 
-    cardOpenBtn.onclick = () => {
-      window.location.href = `entry.html?id=${encodeURIComponent(entry.id)}`;
-    };
+    if (cardOpenBtn) {
+      cardOpenBtn.href = `entry.html?id=${encodeURIComponent(entry.id)}`;
+    }
   }
 
   if (cardClose && cardOverlay) {
