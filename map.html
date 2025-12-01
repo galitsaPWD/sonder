@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" data-page="map">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SONDER · map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="sonder.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="sonder-body sonder-body--map">
+  <header class="site-header site-header--overlay">
+    <div class="site-header__logo">SONDER</div>
+    <nav class="site-header__nav">
+      <a href="about.html">about</a>
+      <a href="submit.html">submit</a>
+      <a href="archive.html">archive</a>
+      <a href="playlist.html">playlist</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <main class="map-layout">
+    <aside class="map-sidebar">
+      <div class="map-sidebar__section">
+        <h2 class="map-sidebar__title">an emotional map</h2>
+        <p class="map-sidebar__text">entries now cling to wherever you are standing in the world.</p>
+        <p class="map-location-status" id="mapLocationStatus">waiting for location permission…</p>
+      </div>
+      <div class="map-sidebar__menu">
+        <button class="btn btn--ghost" id="mapLocateBtn">refresh location</button>
+        <button class="btn btn--ghost" id="mapAddEntryBtn" disabled>add entry from here</button>
+        <button class="btn btn--ghost" id="mapMyEntriesBtn">my entries</button>
+        <button class="btn btn--ghost" id="mapAboutBtn" onclick="window.location.href='about.html'">about</button>
+      </div>
+    </aside>
+
+    <section class="map-canvas-wrapper">
+      <div id="map" class="map-canvas" aria-label="world map"></div>
+    </section>
+  </main>
+
+  <div class="entry-preview" id="entryPreview" hidden></div>
+
+  <div class="entry-card-overlay" id="entryCardOverlay" hidden>
+    <div class="entry-card">
+      <button class="entry-card__close" id="entryCardClose" aria-label="Close entry">×</button>
+      <div class="entry-card__content">
+        <p class="entry-card__location" id="entryCardLocation"></p>
+        <p class="entry-card__timestamp" id="entryCardTimestamp"></p>
+        <div class="entry-card__text" id="entryCardText"></div>
+        <div class="entry-card__links" id="entryCardLinks"></div>
+      </div>
+      <div class="entry-card__actions">
+        <button class="btn btn--ghost" id="entryCardFavorite">♡ favorite</button>
+        <button class="btn btn--ghost" id="entryCardOpen">open</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="mapEntryModal" hidden>
+    <div class="modal">
+      <button class="modal__close" id="mapEntryModalClose" aria-label="Close">×</button>
+      <h2 class="modal__title">leave something small here</h2>
+      <form class="entry-form" id="mapEntryForm">
+        <textarea name="text" id="mapEntryText" rows="4" placeholder="a memory, a line from a song, a passing feeling" required></textarea>
+        <label class="entry-form__label">song link (spotify, youtube, etc.)
+          <input type="url" id="mapEntrySong" name="song" placeholder="optional" />
+        </label>
+        <input type="hidden" id="mapEntryLat" name="lat" />
+        <input type="hidden" id="mapEntryLng" name="lng" />
+        <button type="submit" class="btn btn--primary">drop this into the world</button>
+      </form>
+      <p class="modal__hint">we’ll attach the precise coordinates from your device — nothing manual.</p>
+      <p class="modal__error" id="mapEntryError" hidden></p>
+      <p class="modal__hint">your entry lives only in this browser. nothing is stored on a server.</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j7kPtvCoN1CkKJbIvl9tDqL1R1P5v9i5x3v0Xpw=" crossorigin=""></script>
+  <script src="sonder.js"></script>
+</body>
+</html>

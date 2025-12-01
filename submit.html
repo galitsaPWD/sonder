@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-page="submit">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SONDER · submit</title>
+  <link rel="stylesheet" href="sonder.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="sonder-body sonder-body--submit">
+  <header class="site-header">
+    <div class="site-header__logo" onclick="window.location.href='index.html'">SONDER</div>
+    <nav class="site-header__nav">
+      <a href="about.html">about</a>
+      <a href="map.html">map</a>
+      <a href="archive.html">archive</a>
+    </nav>
+  </header>
+
+  <main class="page-center">
+    <section class="panel">
+      <h1 class="panel__title">leave something on the map</h1>
+      <p class="panel__subtitle">write something small — a feeling, a memory, a truth you’ve been carrying.</p>
+      <form class="entry-form" id="submitEntryForm">
+        <textarea id="submitEntryText" name="text" rows="5" placeholder="a poem, a confession, a quiet thought" required></textarea>
+
+        <label class="entry-form__label">song link (spotify, youtube, etc.)
+          <input type="url" id="submitEntrySong" name="song" placeholder="optional" />
+        </label>
+
+        <label class="entry-form__label">small image (local only)
+          <input type="file" id="submitEntryImage" name="image" accept="image/*" />
+        </label>
+
+        <div class="entry-form__row entry-form__row--stack">
+          <span class="entry-form__hint" id="submitLocationHint">waiting for location permission…</span>
+          <button type="button" class="btn btn--ghost" id="submitDetectLocation">refresh location</button>
+        </div>
+
+        <button type="submit" class="btn btn--primary">add this to the map</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer site-footer--floating">
+    <div class="site-footer__inner">
+      <a href="map.html">back to map</a>
+    </div>
+  </footer>
+
+  <script src="sonder.js"></script>
+</body>
+</html>

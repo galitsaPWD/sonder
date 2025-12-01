@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-page="archive">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SONDER · archive</title>
+  <link rel="stylesheet" href="sonder.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="sonder-body sonder-body--archive">
+  <header class="site-header">
+    <div class="site-header__logo" onclick="window.location.href='index.html'">SONDER</div>
+    <nav class="site-header__nav">
+      <a href="map.html">map</a>
+      <a href="submit.html">submit</a>
+      <a href="playlist.html">playlist</a>
+    </nav>
+  </header>
+
+  <main class="archive-layout">
+    <header class="archive-header">
+      <h1 class="archive-title">archive</h1>
+      <p class="archive-subtitle">a quiet grid of past entries from this browser.</p>
+      <div class="archive-controls">
+        <label>sort by
+          <select id="archiveSort">
+            <option value="newest">newest</option>
+            <option value="location">location</option>
+            <option value="favorite">favorites</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <section class="archive-grid" id="archiveGrid"></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <a href="map.html">back to map</a>
+    </div>
+  </footer>
+
+  <script src="sonder.js"></script>
+</body>
+</html>
