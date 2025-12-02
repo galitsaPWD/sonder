@@ -205,11 +205,19 @@ function initMapPage() {
 
       marker.on("mouseover", (e) => {
         if (!previewEl) return;
-        previewEl.textContent = firstLines(entry.text, 2);
+        const previewText = firstLines(entry.text, 2);
+        if (!previewText.trim()) return;
+        previewEl.textContent = previewText;
+        
+        // Assign random color based on entry ID for consistency
+        const colors = ["yellow", "blue", "green", "purple", "orange", "pink"];
+        const colorIndex = entry.id.charCodeAt(entry.id.length - 1) % colors.length;
+        previewEl.setAttribute("data-color", colors[colorIndex]);
+        
         previewEl.hidden = false;
         const { x, y } = e.originalEvent;
-        previewEl.style.left = x + 12 + "px";
-        previewEl.style.top = y - 4 + "px";
+        previewEl.style.left = x + 16 + "px";
+        previewEl.style.top = y - 12 + "px";
       });
 
       marker.on("mouseout", () => {
