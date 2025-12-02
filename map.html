@@ -53,8 +53,20 @@
         <label class="entry-form__label">song link (spotify, youtube, etc.)
           <input type="url" id="mapEntrySong" name="song" placeholder="optional" />
         </label>
+        <label class="entry-form__label">note color
+          <div class="color-picker" id="mapEntryColorPicker">
+            <button type="button" class="color-option" data-color="black" style="background: #1a1a1a;" title="black"></button>
+            <button type="button" class="color-option" data-color="pink" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);" title="pink"></button>
+            <button type="button" class="color-option" data-color="yellow" style="background: linear-gradient(135deg, #feca57 0%, #ffd89b 100%);" title="yellow"></button>
+            <button type="button" class="color-option" data-color="blue" style="background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);" title="blue"></button>
+            <button type="button" class="color-option" data-color="green" style="background: linear-gradient(135deg, #55efc4 0%, #81ecec 100%);" title="green"></button>
+            <button type="button" class="color-option" data-color="purple" style="background: linear-gradient(135deg, #a29bfe 0%, #dfe6e9 100%);" title="purple"></button>
+            <button type="button" class="color-option" data-color="orange" style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);" title="orange"></button>
+          </div>
+        </label>
         <input type="hidden" id="mapEntryLat" name="lat" />
         <input type="hidden" id="mapEntryLng" name="lng" />
+        <input type="hidden" id="mapEntryColor" name="color" value="black" />
         <button type="submit" class="btn btn--primary">drop this into the world</button>
       </form>
       <p class="modal__hint">we’ll attach the precise coordinates from your device — nothing manual.</p>

@@ -70,11 +70,11 @@ function isFavorite(id) {
   return loadFavorites().includes(id);
 }
 
-function createEntry({ text, song, imageData, lat, lng, locationName }) {
+function createEntry({ text, song, imageData, lat, lng, locationName, color }) {
   const entries = loadEntries();
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const createdAt = new Date().toISOString();
-  const entry = { id, text, song: song || "", imageData: imageData || "", lat, lng, locationName, createdAt };
+  const entry = { id, text, song: song || "", imageData: imageData || "", lat, lng, locationName, color: color || "black", createdAt };
   entries.push(entry);
   saveEntries(entries);
   return entry;
@@ -166,8 +166,12 @@ function initMapPage() {
     worldCopyJump: true,
   }).setView([20, 0], 2.3);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap contributors",
+  // Stamen Watercolor - beautiful artistic map style
+  L.tileLayer("https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg", {
+    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+    subdomains: "abcd",
+    minZoom: 1,
+    maxZoom: 16,
   }).addTo(map);
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -209,15 +213,15 @@ function initMapPage() {
         if (!previewText.trim()) return;
         previewEl.textContent = previewText;
         
-        // Assign random color based on entry ID for consistency
-        const colors = ["yellow", "blue", "green", "purple", "orange", "pink"];
-        const colorIndex = entry.id.charCodeAt(entry.id.length - 1) % colors.length;
-        previewEl.setAttribute("data-color", colors[colorIndex]);
+        // Use entry's color or default to black
+        const entryColor = entry.color || "black";
+        previewEl.setAttribute("data-color", entryColor);
         
         previewEl.hidden = false;
         const { x, y } = e.originalEvent;
+        // Position above the marker
         previewEl.style.left = x + 16 + "px";
-        previewEl.style.top = y - 12 + "px";
+        previewEl.style.top = y - 60 + "px";
       });
 
       marker.on("mouseout", () => {
@@ -399,6 +403,24 @@ function initMapPage() {
     });
   }
 
+  // Color picker functionality
+  const colorPicker = document.getElementById("mapEntryColorPicker");
+  const colorInput = document.getElementById("mapEntryColor");
+  if (colorPicker && colorInput) {
+    const colorOptions = colorPicker.querySelectorAll(".color-option");
+    colorOptions.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        colorOptions.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        colorInput.value = btn.dataset.color;
+      });
+    });
+    // Set black as default active
+    const blackBtn = colorPicker.querySelector('[data-color="black"]');
+    if (blackBtn) blackBtn.classList.add("active");
+  }
+
   if (mapEntryForm) {
     mapEntryForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -415,6 +437,8 @@ function initMapPage() {
       const song = songEl.value.trim();
       const lat = userLatLng.lat;
       const lng = userLatLng.lng;
+      const colorEl = document.getElementById("mapEntryColor");
+      const color = colorEl ? colorEl.value : "black";
 
       const newEntry = createEntry({
         text,
@@ -423,6 +447,7 @@ function initMapPage() {
         lat,
         lng,
         locationName: userLocationLabel,
+        color,
       });
       showMapEntryError("");
       if (mapEntryModal) {
@@ -522,6 +547,24 @@ function initSubmitPage() {
     detectBtn.addEventListener("click", () => requestSubmitLocation(true));
   }
 
+  // Color picker functionality for submit page
+  const submitColorPicker = document.getElementById("submitEntryColorPicker");
+  const submitColorInput = document.getElementById("submitEntryColor");
+  if (submitColorPicker && submitColorInput) {
+    const colorOptions = submitColorPicker.querySelectorAll(".color-option");
+    colorOptions.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        colorOptions.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        submitColorInput.value = btn.dataset.color;
+      });
+    });
+    // Set black as default active
+    const blackBtn = submitColorPicker.querySelector('[data-color="black"]');
+    if (blackBtn) blackBtn.classList.add("active");
+  }
+
   requestSubmitLocation();
 
   if (form) {
@@ -549,6 +592,8 @@ function initSubmitPage() {
 
       const lat = detectedLatLng.lat;
       const lng = detectedLatLng.lng;
+      const submitColorEl = document.getElementById("submitEntryColor");
+      const color = submitColorEl ? submitColorEl.value : "black";
 
       const entry = createEntry({
         text,
@@ -557,6 +602,7 @@ function initSubmitPage() {
         lat,
         lng,
         locationName: detectedLocationLabel,
+        color,
       });
 
       textEl.value = "";
