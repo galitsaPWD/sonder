@@ -188,7 +188,7 @@ function initMapPage() {
     const mapContainer = map.getContainer();
     const mapRect = mapContainer.getBoundingClientRect();
     previewEl.style.left = (mapRect.left + markerPoint.x) + "px";
-    previewEl.style.top = (mapRect.top + markerPoint.y - 80) + "px";
+    previewEl.style.top = (mapRect.top + markerPoint.y - 45) + "px";
   }
 
   map.on("move", updatePreviewPosition);
@@ -239,10 +239,10 @@ function initMapPage() {
         const mapRect = mapContainer.getBoundingClientRect();
         
         previewEl.hidden = false;
-        // Position centered above the marker
+        // Position closer to marker, like a thought bubble
         previewEl.style.left = (mapRect.left + markerPoint.x) + "px";
-        previewEl.style.top = (mapRect.top + markerPoint.y - 80) + "px";
-        previewEl.style.transform = "translateX(-50%) translateY(-8px)";
+        previewEl.style.top = (mapRect.top + markerPoint.y - 45) + "px";
+        previewEl.style.transform = "translateX(-50%) translateY(-100%)";
       });
 
       marker.on("mouseout", () => {
