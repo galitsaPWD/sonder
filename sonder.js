@@ -173,14 +173,6 @@ function initMapPage() {
   L.control.zoom({ position: "bottomright" }).addTo(map);
 
   const previewEl = document.getElementById("entryPreview");
-  const cardOverlay = document.getElementById("entryCardOverlay");
-  const cardClose = document.getElementById("entryCardClose");
-  const cardLocation = document.getElementById("entryCardLocation");
-  const cardTimestamp = document.getElementById("entryCardTimestamp");
-  const cardText = document.getElementById("entryCardText");
-  const cardLinks = document.getElementById("entryCardLinks");
-  const cardFavoriteBtn = document.getElementById("entryCardFavorite");
-  const cardOpenBtn = document.getElementById("entryCardOpen");
 
   const markersLayer = L.layerGroup().addTo(map);
   const entries = loadEntries();
@@ -225,47 +217,11 @@ function initMapPage() {
       });
 
       marker.on("click", () => {
-        openEntryCard(entry);
+        window.location.href = `entry.html?id=${encodeURIComponent(entry.id)}`;
       });
     });
   }
 
-  function openEntryCard(entry) {
-    if (!cardOverlay) return;
-    cardOverlay.hidden = false;
-    cardLocation.textContent = entry.locationName || "somewhere on earth";
-    cardTimestamp.textContent = formatTimestamp(entry.createdAt);
-    cardText.textContent = entry.text;
-
-    cardLinks.innerHTML = "";
-    if (entry.song) {
-      const anchor = document.createElement("a");
-      anchor.href = entry.song;
-      anchor.target = "_blank";
-      anchor.rel = "noopener";
-      anchor.textContent = "open song in a new tab";
-      cardLinks.appendChild(anchor);
-    }
-
-    cardFavoriteBtn.textContent = isFavorite(entry.id) ? "♥ favorited" : "♡ favorite";
-
-    cardFavoriteBtn.onclick = () => {
-      toggleFavorite(entry.id);
-      cardFavoriteBtn.textContent = isFavorite(entry.id) ? "♥ favorited" : "♡ favorite";
-      renderMarkers();
-    };
-
-    if (cardOpenBtn) {
-      cardOpenBtn.href = `entry.html?id=${encodeURIComponent(entry.id)}`;
-    }
-  }
-
-  if (cardClose && cardOverlay) {
-    cardClose.addEventListener("click", () => (cardOverlay.hidden = true));
-    cardOverlay.addEventListener("click", (e) => {
-      if (e.target === cardOverlay) cardOverlay.hidden = true;
-    });
-  }
 
   const mapEntryModal = document.getElementById("mapEntryModal");
   const mapEntryModalClose = document.getElementById("mapEntryModalClose");
