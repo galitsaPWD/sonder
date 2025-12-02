@@ -193,8 +193,9 @@ function initMapPage() {
   function renderMarkers() {
     markersLayer.clearLayers();
     const favs = new Set(loadFavorites());
+    const allEntries = loadEntries();
 
-    entries.forEach((entry) => {
+    allEntries.forEach((entry) => {
       if (typeof entry.lat !== "number" || typeof entry.lng !== "number") return;
       const favorite = favs.has(entry.id);
       const marker = L.marker([entry.lat, entry.lng], {
@@ -356,6 +357,7 @@ function initMapPage() {
     }
     showMapEntryError("");
     mapEntryModal.hidden = false;
+    mapEntryModal.style.display = "flex";
   }
 
   if (mapAddEntryBtn) {
@@ -375,9 +377,17 @@ function initMapPage() {
   }
 
   if (mapEntryModalClose && mapEntryModal) {
-    mapEntryModalClose.addEventListener("click", () => (mapEntryModal.hidden = true));
+    mapEntryModalClose.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      mapEntryModal.hidden = true;
+      mapEntryModal.style.display = "none";
+    });
     mapEntryModal.addEventListener("click", (e) => {
-      if (e.target === mapEntryModal) mapEntryModal.hidden = true;
+      if (e.target === mapEntryModal) {
+        mapEntryModal.hidden = true;
+        mapEntryModal.style.display = "none";
+      }
     });
   }
 
@@ -406,17 +416,23 @@ function initMapPage() {
         lng,
         locationName: userLocationLabel,
       });
-      entries.push(newEntry);
-      renderMarkers();
       showMapEntryError("");
-      if (mapEntryModal) mapEntryModal.hidden = true;
+      if (mapEntryModal) {
+        mapEntryModal.hidden = true;
+        mapEntryModal.style.display = "none";
+      }
       if (textEl) textEl.value = "";
       if (songEl) songEl.value = "";
       if (mapEntryLat && mapEntryLng) {
         mapEntryLat.value = lat;
         mapEntryLng.value = lng;
       }
-      map.setView([lat, lng], 6);
+      renderMarkers();
+      map.setView([lat, lng], 8);
+      setTimeout(() => {
+        map.invalidateSize();
+        map.setView([lat, lng], 8);
+      }, 150);
     });
   }
 
