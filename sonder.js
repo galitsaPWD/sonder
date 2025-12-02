@@ -166,20 +166,33 @@ function initMapPage() {
     worldCopyJump: true,
   }).setView([20, 0], 2.3);
 
-  // Stamen Watercolor - beautiful artistic map style
-  L.tileLayer("https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg", {
-    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+  // CartoDB Positron - clean, modern map style (more reliable than Stamen)
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: "abcd",
-    minZoom: 1,
-    maxZoom: 16,
+    maxZoom: 19,
   }).addTo(map);
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
 
   const previewEl = document.getElementById("entryPreview");
+  let currentHoveredEntry = null;
 
   const markersLayer = L.layerGroup().addTo(map);
   const entries = loadEntries();
+
+  // Update preview position when map moves/zooms
+  function updatePreviewPosition() {
+    if (!previewEl || !map || !currentHoveredEntry || previewEl.hidden) return;
+    const markerPoint = map.latLngToContainerPoint([currentHoveredEntry.lat, currentHoveredEntry.lng]);
+    const mapContainer = map.getContainer();
+    const mapRect = mapContainer.getBoundingClientRect();
+    previewEl.style.left = (mapRect.left + markerPoint.x) + "px";
+    previewEl.style.top = (mapRect.top + markerPoint.y - 80) + "px";
+  }
+
+  map.on("move", updatePreviewPosition);
+  map.on("zoom", updatePreviewPosition);
   const mapLocateBtn = document.getElementById("mapLocateBtn");
   const mapLocationStatus = document.getElementById("mapLocationStatus");
 
@@ -208,7 +221,7 @@ function initMapPage() {
       }).addTo(markersLayer);
 
       marker.on("mouseover", (e) => {
-        if (!previewEl) return;
+        if (!previewEl || !map) return;
         const previewText = firstLines(entry.text, 2);
         if (!previewText.trim()) return;
         previewEl.textContent = previewText;
@@ -217,16 +230,25 @@ function initMapPage() {
         const entryColor = entry.color || "black";
         previewEl.setAttribute("data-color", entryColor);
         
+        // Store current entry for position updates
+        currentHoveredEntry = entry;
+        
+        // Position above the marker using marker coordinates
+        const markerPoint = map.latLngToContainerPoint([entry.lat, entry.lng]);
+        const mapContainer = map.getContainer();
+        const mapRect = mapContainer.getBoundingClientRect();
+        
         previewEl.hidden = false;
-        const { x, y } = e.originalEvent;
-        // Position above the marker
-        previewEl.style.left = x + 16 + "px";
-        previewEl.style.top = y - 60 + "px";
+        // Position centered above the marker
+        previewEl.style.left = (mapRect.left + markerPoint.x) + "px";
+        previewEl.style.top = (mapRect.top + markerPoint.y - 80) + "px";
+        previewEl.style.transform = "translateX(-50%) translateY(-8px)";
       });
 
       marker.on("mouseout", () => {
         if (!previewEl) return;
         previewEl.hidden = true;
+        currentHoveredEntry = null;
       });
 
       marker.on("click", () => {
