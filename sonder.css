@@ -792,6 +792,44 @@ a:hover {
     rgba(25, 24, 22, 0.94);
 }
 
+/* Mood theming for entry view */
+.entry-view[data-mood="pink"] .entry-view__card {
+  background: radial-gradient(circle at top left, rgba(255, 154, 158, 0.4), transparent 60%),
+    rgba(245, 241, 232, 0.96);
+}
+
+.entry-view[data-mood="yellow"] .entry-view__card {
+  background: radial-gradient(circle at top left, rgba(254, 202, 87, 0.45), transparent 60%),
+    rgba(245, 241, 232, 0.96);
+}
+
+.entry-view[data-mood="blue"] .entry-view__card {
+  background: radial-gradient(circle at top left, rgba(116, 185, 255, 0.45), transparent 60%),
+    rgba(245, 241, 232, 0.96);
+}
+
+.entry-view[data-mood="green"] .entry-view__card {
+  background: radial-gradient(circle at top left, rgba(85, 239, 196, 0.45), transparent 60%),
+    rgba(245, 241, 232, 0.96);
+}
+
+.entry-view[data-mood="purple"] .entry-view__card {
+  background: radial-gradient(circle at top left, rgba(162, 155, 254, 0.5), transparent 60%),
+    rgba(245, 241, 232, 0.96);
+}
+
+.entry-view[data-mood="orange"] .entry-view__card {
+  background: radial-gradient(circle at top left, rgba(253, 121, 168, 0.5), transparent 60%),
+    rgba(245, 241, 232, 0.96);
+}
+
+.entry-view[data-mood="black"] .entry-view__card {
+  background: radial-gradient(circle at top left, rgba(24, 24, 24, 0.7), transparent 60%),
+    rgba(20, 20, 20, 0.96);
+  color: #f5f1e8;
+}
+
+
 .entry-view__location {
   font-size: 0.85rem;
   letter-spacing: 0.16em;
