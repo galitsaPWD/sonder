@@ -112,6 +112,36 @@ function firstLines(text, lines = 2) {
   return text.split(/\r?\n/).slice(0, lines).join("\n");
 }
 
+const spotifyTitleCache = {};
+
+function getSpotifyEmbedUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  const lower = url.toLowerCase();
+  if (!lower.includes("open.spotify.com")) return null;
+  try {
+    const cleanUrl = url.split("?")[0];
+    return cleanUrl.replace("open.spotify.com/", "open.spotify.com/embed/");
+  } catch {
+    return null;
+  }
+}
+
+async function fetchSpotifyTitle(url) {
+  if (!url) return null;
+  if (spotifyTitleCache[url]) return spotifyTitleCache[url];
+  try {
+    const oembedUrl = "https://open.spotify.com/oembed?url=" + encodeURIComponent(url);
+    const res = await fetch(oembedUrl);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const title = data.title || null;
+    if (title) spotifyTitleCache[url] = title;
+    return title;
+  } catch {
+    return null;
+  }
+}
+
 // Theme toggle
 (function initTheme() {
   const stored = localStorage.getItem("sonderTheme");
@@ -179,9 +209,14 @@ function initMapPage() {
   let currentHoveredEntry = null;
 
   const markersLayer = L.layerGroup().addTo(map);
-  const entries = loadEntries();
 
-  // Update preview position when map moves/zooms
+  function hidePreview() {
+    if (!previewEl) return;
+    previewEl.hidden = true;
+    previewEl.innerHTML = "";
+    currentHoveredEntry = null;
+  }
+
   function updatePreviewPosition() {
     if (!previewEl || !map || !currentHoveredEntry || previewEl.hidden) return;
     const markerPoint = map.latLngToContainerPoint([currentHoveredEntry.lat, currentHoveredEntry.lng]);
@@ -193,6 +228,14 @@ function initMapPage() {
 
   map.on("move", updatePreviewPosition);
   map.on("zoom", updatePreviewPosition);
+  map.on("mousedown", () => {
+    hidePreview();
+  });
+  const mapContainerEl = map.getContainer();
+  if (mapContainerEl && previewEl) {
+    mapContainerEl.addEventListener("mouseleave", hidePreview);
+  }
+
   const mapLocateBtn = document.getElementById("mapLocateBtn");
   const mapLocationStatus = document.getElementById("mapLocationStatus");
 
@@ -220,36 +263,47 @@ function initMapPage() {
         opacity: 0.92,
       }).addTo(markersLayer);
 
-      marker.on("mouseover", (e) => {
+      marker.on("mouseover", () => {
         if (!previewEl || !map) return;
         const previewText = firstLines(entry.text, 2);
-        if (!previewText.trim()) return;
-        previewEl.textContent = previewText;
-        
-        // Use entry's color or default to black
+        const embedUrl = getSpotifyEmbedUrl(entry.song);
+        if (!previewText.trim() && !embedUrl) return;
+
+        previewEl.innerHTML = "";
+        if (embedUrl) {
+          // Use cached title if we have it; otherwise generic label and fetch in background
+          let labelText = "🎧 a song is playing nearby";
+          const cachedTitle = spotifyTitleCache[entry.song];
+          if (cachedTitle) {
+            labelText = "🎧 " + cachedTitle;
+          } else {
+            fetchSpotifyTitle(entry.song);
+          }
+          const musicLabel = document.createElement("div");
+          musicLabel.className = "entry-preview__music-label";
+          const labelScroller = document.createElement("span");
+          labelScroller.textContent = labelText;
+          musicLabel.appendChild(labelScroller);
+          previewEl.appendChild(musicLabel);
+        }
+
+        if (previewText.trim()) {
+          const textBlock = document.createElement("div");
+          textBlock.className = "entry-preview__text";
+          textBlock.textContent = previewText;
+          previewEl.appendChild(textBlock);
+        }
+
         const entryColor = entry.color || "black";
         previewEl.setAttribute("data-color", entryColor);
-        
-        // Store current entry for position updates
         currentHoveredEntry = entry;
-        
-        // Position above the marker using marker coordinates
-        const markerPoint = map.latLngToContainerPoint([entry.lat, entry.lng]);
-        const mapContainer = map.getContainer();
-        const mapRect = mapContainer.getBoundingClientRect();
-        
+
         previewEl.hidden = false;
-        // Position closer to marker, like a thought bubble
-        previewEl.style.left = (mapRect.left + markerPoint.x) + "px";
-        previewEl.style.top = (mapRect.top + markerPoint.y - 45) + "px";
+        updatePreviewPosition();
         previewEl.style.transform = "translateX(-50%) translateY(-100%)";
       });
 
-      marker.on("mouseout", () => {
-        if (!previewEl) return;
-        previewEl.hidden = true;
-        currentHoveredEntry = null;
-      });
+      marker.on("mouseout", hidePreview);
 
       marker.on("click", () => {
         window.location.href = `entry.html?id=${encodeURIComponent(entry.id)}`;
@@ -544,21 +598,21 @@ function initSubmitPage() {
       detectBtn.textContent = "locating…";
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
         locating = false;
-        detectedLatLng = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
+          detectedLatLng = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          };
         detectedLocationLabel = "";
         setSubmitHint("locked onto your current spot.");
         if (detectBtn) {
           detectBtn.disabled = false;
           detectBtn.textContent = "refresh location";
         }
-      },
-      () => {
+        },
+        () => {
         applySubmitApprox("we couldn’t access gps. guessing based on network…");
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -678,7 +732,20 @@ function initEntryPage() {
   textEl.textContent = entry.text;
 
   linksEl.innerHTML = "";
-  if (entry.song) {
+  const entrySpotifyEmbed = getSpotifyEmbedUrl(entry.song);
+  if (entrySpotifyEmbed) {
+    const musicWrap = document.createElement("div");
+    musicWrap.className = "entry-view__music";
+    const iframe = document.createElement("iframe");
+    iframe.src = entrySpotifyEmbed;
+    iframe.width = "100%";
+    iframe.height = "152";
+    iframe.frameBorder = "0";
+    iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+    iframe.loading = "lazy";
+    musicWrap.appendChild(iframe);
+    linksEl.appendChild(musicWrap);
+  } else if (entry.song) {
     const anchor = document.createElement("a");
     anchor.href = entry.song;
     anchor.target = "_blank";

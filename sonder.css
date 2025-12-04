@@ -355,8 +355,8 @@ a:hover {
 .entry-preview {
   position: fixed;
   pointer-events: none;
-  max-width: 200px;
-  min-width: 120px;
+  max-width: 220px;
+  min-width: 140px;
   background: #1a1a1a;
   color: #fff;
   padding: 0.75rem 1rem;
@@ -370,6 +370,10 @@ a:hover {
   animation: noteAppear 0.2s ease-out forwards;
   word-wrap: break-word;
   white-space: pre-wrap;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  overflow: hidden;
 }
 
 .entry-preview::after {
@@ -451,11 +455,38 @@ a:hover {
   color: #fff;
 }
 
+.entry-preview[data-color="black"]::after {
+  border-top-color: #1a1a1a;
+}
+
 .entry-preview[hidden] {
+  display: none !important;
   opacity: 0;
   transform: translateX(-50%) translateY(-100%) translateY(-4px) scale(0.95);
-  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
   pointer-events: none;
+}
+
+.entry-preview__text {
+  white-space: pre-wrap;
+}
+
+.entry-preview__music-label {
+  overflow: hidden;
+}
+
+.entry-preview__music-label span {
+  display: inline-block;
+  white-space: nowrap;
+  animation: musicScroll 6s linear infinite;
+}
+
+@keyframes musicScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-40%);
+  }
 }
 
 .entry-card-overlay {
@@ -779,6 +810,16 @@ a:hover {
   font-size: 1.08rem;
   line-height: 2;
   margin-bottom: 1.4rem;
+}
+
+.entry-view__music {
+  margin-bottom: 1.2rem;
+}
+
+.entry-view__music iframe {
+  border-radius: 18px;
+  width: 100%;
+  background: #121212;
 }
 
 .entry-view__actions {
