@@ -80,7 +80,7 @@ function initMap() {
     const navLng = localStorage.getItem('sonder-nav-lng');
     if (navLat && navLng) {
         setTimeout(() => {
-            map.flyTo([parseFloat(navLat), parseFloat(navLng)], 13, {
+            map.flyTo([parseFloat(navLat), parseFloat(navLng)], 17, {
                 duration: 4,
                 easeLinearity: 1
             });
@@ -150,7 +150,7 @@ function initMap() {
                         // Offset in a circle pattern
                         const offsetIndex = markerCoords[coordKey] - 1;
                         const angle = (offsetIndex * 60) * (Math.PI / 180); // 60 degrees apart
-                        const offsetDistance = 0.0002; // Small offset (~20 meters)
+                        const offsetDistance = 0.00008; // Very small offset (~8 meters)
                         lat += Math.cos(angle) * offsetDistance;
                         lng += Math.sin(angle) * offsetDistance;
                     }
