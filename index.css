@@ -1,0 +1,178 @@
+/* SONDER - Landing Page Design */
+
+/* --- Hero Section --- */
+.hero {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0;
+    text-align: center;
+    padding: 2rem;
+}
+
+.hero__title-block {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+}
+
+.hero__title {
+    font-size: clamp(3rem, 12vw, 8rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    margin: 0 0 1.5rem;
+    line-height: 0.9;
+    opacity: 0;
+    animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    background: linear-gradient(to bottom right, var(--color-text) 30%, var(--color-muted));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero__subtitle {
+    font-size: clamp(1rem, 4vw, 1.4rem);
+    color: var(--color-muted);
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    opacity: 0;
+    animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards;
+    margin-bottom: 3rem;
+    line-height: 1.6;
+}
+
+.hero__cta {
+    font-size: 1.1rem;
+    padding: 1rem 2.5rem;
+    border-radius: 99px;
+    background: var(--color-text);
+    color: var(--color-bg);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity: 0;
+    animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s forwards;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+    min-width: 200px;
+}
+
+.hero__cta:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+}
+
+/* Background Effects */
+.hero__map-blur {
+    position: absolute;
+    inset: -20%;
+    background-image: url('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/6/32/32.png');
+    /* Subtle map texture fallback */
+    background-size: cover;
+    opacity: 0.05;
+    filter: blur(2px) grayscale(100%);
+    animation: panBackground 60s linear infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+[data-theme="dark"] .hero__map-blur {
+    opacity: 0.03;
+    filter: invert(1) blur(2px);
+}
+
+@keyframes panBackground {
+    from {
+        transform: scale(1) translate(0, 0);
+    }
+
+    to {
+        transform: scale(1.1) translate(-2%, -2%);
+    }
+}
+
+/* --- Purpose Section --- */
+.section--purpose {
+    padding: 6rem 2rem;
+    text-align: center;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.02));
+}
+
+.section__eyebrow {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-muted);
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+}
+
+.section__text {
+    font-family: "Playfair Display", serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    line-height: 1.4;
+    max-width: 900px;
+    margin: 0 auto;
+    color: var(--color-text);
+}
+
+/* --- Footer --- */
+.site-footer {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 0;
+    opacity: 0.5;
+    font-size: 0.85rem;
+}
+
+.site-footer__inner {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.site-footer__nav {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.site-footer__nav a {
+    position: relative;
+    text-decoration: none;
+}
+
+.site-footer__nav a::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+}
+
+.site-footer__nav a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+/* Animations */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+        filter: blur(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}

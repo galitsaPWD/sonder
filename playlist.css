@@ -1,0 +1,85 @@
+/* SONDER - Playlist Styles */
+
+.playlist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 900px;
+    margin: 0 auto 4rem;
+}
+
+/* Track Row Design (New UX) */
+.track-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none !important;
+    color: var(--color-text);
+
+    opacity: 0;
+    animation: slideInRight 0.5s ease-out forwards;
+}
+
+[data-theme="dark"] .track-row {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.track-row:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+overflow: {
+    hidden;
+}
+
+.track-message {
+    font-family: "Playfair Display", serif;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-meta {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.track-action {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.track-row:hover .track-action {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

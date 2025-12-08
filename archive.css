@@ -1,0 +1,33 @@
+/* SONDER - Archive Styles */
+
+/* Layout */
+.section__inner {
+    max-width: 1200px;
+    /* Wider for archive */
+    margin: 0 auto;
+}
+
+.archive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    margin-bottom: 0.5rem;
+}
+
+.entry-card__text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    flex-grow: 1;
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

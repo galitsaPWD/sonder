@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-page="about">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SONDER · about</title>
+  <link rel="stylesheet" href="sonder.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body class="sonder-body sonder-body--about">
+  <header class="site-header">
+    <div class="site-header__logo" onclick="window.location.href='index.html'">SONDER</div>
+    <nav class="site-header__nav">
+      <a href="about.html">about</a>
+      <a href="map.html">map</a>
+      <a href="archive.html">archive</a>
+      <a href="playlist.html">playlist</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <main class="section">
+    <div class="section__inner">
+      <h1 class="page-title">about sonder</h1>
+
+      <div class="glass-panel fade-up-delay-2">
+        <h2 class="about-subtitle"
+          style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1rem; color: var(--color-text);">
+          the concept</h2>
+        <p style="line-height: 1.8; margin-bottom: 2rem; color: var(--color-text);">
+          Sonder is the realization that every passerby has a life as vivid and complex as your own. This project is a
+          space to notice that.
+        </p>
+
+        <h2 class="about-subtitle"
+          style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1rem; color: var(--color-text);">
+          the intent</h2>
+        <p style="line-height: 1.8; margin-bottom: 2rem; color: var(--color-text);">
+          A quiet place to leave things behind. Poems, memories, songs, moments. Nothing here asks for your name, only
+          what the world feels like from where you are standing.
+        </p>
+
+        <h2 class="about-subtitle"
+          style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1rem; color: var(--color-text);">
+          credits</h2>
+        <p style="line-height: 1.8; color: var(--color-muted);">
+          Built with leaflet.js, local storage, and a lot of late-night energy.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">SONDER</div>
+      <nav class="site-footer__nav">
+        <a href="index.html">home</a>
+        <a href="map.html">map</a>
+        <a href="archive.html">archive</a>
+        <a href="playlist.html">playlist</a>
+      </nav>
+      <div class="site-footer__copyright">© 2024 Sonder. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFJHbgcYloTQY8JR6jAxih6ayNudqfep0",
+      authDomain: "sonder031804.firebaseapp.com",
+      projectId: "sonder031804",
+      storageBucket: "sonder031804.firebasestorage.app",
+      messagingSenderId: "996829332000",
+      appId: "1:996829332000:web:b466fdedd6b7fa904bf245",
+      measurementId: "G-E5PP6QVFK7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
+  <script src="sonder.js"></script>
+</body>
+
+</html>

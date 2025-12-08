@@ -1,0 +1,327 @@
+/* SONDER - Global Design System */
+
+:root {
+  --color-bg: #f5f1e8;
+  --color-bg-alt: #eae6df;
+  --color-text: #1f1e1c;
+  --color-muted: #7b7468;
+  --color-accent: #dcc7a1;
+  --color-accent-soft: rgba(240, 220, 180, 0.6);
+  --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 15px rgba(240, 220, 180, 0.4);
+}
+
+[data-theme="dark"] {
+  --color-bg: #1f1e1c;
+  --color-bg-alt: #262522;
+  --color-text: #eae6df;
+  --color-muted: #a8a298;
+  --shadow-soft: 0 20px 70px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(240, 220, 180, 0.15);
+}
+
+/* Reset & Base */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body.sonder-body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+  animation: pageFadeIn 0.8s ease-out;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Components: Header */
+.site-header {
+  position: relative;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 3vw;
+}
+
+.site-header--overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(245, 241, 232, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .site-header--overlay {
+  background: rgba(31, 30, 28, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.site-header__logo {
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.site-header__nav {
+  display: flex;
+  gap: 1.4rem;
+  font-size: 0.85rem;
+  text-transform: lowercase;
+}
+
+/* Components: Footer */
+/* Components: Footer */
+.site-footer {
+  padding: 4rem 3vw 2rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  background: var(--color-bg-alt);
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .site-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.site-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+  text-align: center;
+}
+
+.site-footer__brand {
+  font-family: "Playfair Display", serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.site-footer__tagline {
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.7;
+  margin-bottom: 1.5rem;
+}
+
+.site-footer__nav {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.site-footer__nav a {
+  position: relative;
+  text-decoration: none;
+  font-weight: 500;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.site-footer__nav a:hover {
+  text-decoration: none;
+  color: var(--color-accent);
+}
+
+.site-footer__copyright {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  margin-top: 1rem;
+}
+
+.site-footer--floating {
+  /* No longer used, but kept for legacy cleanup if needed or redefined */
+  background: transparent;
+  border: none;
+}
+
+/* Components: Buttons */
+.btn {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.7rem 1.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.btn--primary {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn--ghost {
+  border-color: var(--color-muted);
+}
+
+.btn--ghost:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+/* Components: Structure */
+.section {
+  padding: 4rem 6vw;
+}
+
+.section__inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Utility: Glass Card Base */
+.entry-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 1.8rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .entry-card {
+  background: rgba(30, 30, 30, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Global Typography & Animation Utilities --- */
+
+.page-title {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(3rem, 10vw, 6rem);
+  /* Slightly smaller than hero title */
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  margin: 0 0 1.5rem;
+  line-height: 0.9;
+  opacity: 0;
+  animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  background: linear-gradient(to bottom right, var(--color-text) 30%, var(--color-muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-subtitle {
+  font-size: clamp(1rem, 4vw, 1.4rem);
+  color: var(--color-muted);
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  opacity: 0;
+  animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s forwards;
+}
+
+[data-theme="dark"] .glass-panel {
+  background: rgba(30, 30, 30, 0.3);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.fade-up-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.fade-up-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.fade-up-delay-3 {
+  animation-delay: 0.3s;
+}
+
+.fade-up-delay-4 {
+  animation-delay: 0.4s;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}

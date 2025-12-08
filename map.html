@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-page="map">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SONDER · map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="sonder.css" />
+  <link rel="stylesheet" href="map.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body class="sonder-body sonder-body--map">
+  <header class="site-header site-header--overlay">
+    <div class="site-header__logo" onclick="window.location.href='index.html'" style="cursor: pointer;">SONDER</div>
+    <nav class="site-header__nav">
+      <a href="about.html">about</a>
+      <a href="archive.html">archive</a>
+      <a href="playlist.html">playlist</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <main class="map-layout">
+    <aside class="map-sidebar">
+      <div class="map-sidebar__section">
+        <h2 class="map-sidebar__title" style="font-family: 'Playfair Display', serif; font-weight: 500;">echoes of
+          elsewhere</h2>
+        <p class="map-sidebar__text">traces left by strangers, right where you stand.</p>
+        <p class="map-location-status" id="mapLocationStatus">waiting for location permission…</p>
+      </div>
+      <div class="map-sidebar__menu">
+        <button class="btn btn--ghost" id="mapLocateBtn">refresh location</button>
+        <button class="btn btn--ghost" id="mapAddEntryBtn">add entry from here</button>
+        <button class="btn btn--ghost" id="mapMyEntriesBtn">my entries</button>
+        <button class="btn btn--ghost" id="mapAboutBtn" onclick="window.location.href='about.html'">about</button>
+      </div>
+    </aside>
+
+    <section class="map-canvas-wrapper">
+      <div id="map" class="map-canvas" aria-label="world map"></div>
+    </section>
+  </main>
+
+  <div class="entry-preview" id="entryPreview" hidden></div>
+
+  <div class="modal-overlay" id="mapEntryModal" hidden>
+    <div class="modal">
+      <button class="modal__close" id="mapEntryModalClose" aria-label="Close">×</button>
+      <h2 class="modal__title">leave something small here</h2>
+      <form class="entry-form" id="mapEntryForm">
+        <textarea name="text" id="mapEntryText" rows="4" placeholder="a memory, a line from a song, a passing feeling"
+          required></textarea>
+        <label class="entry-form__label">song link (spotify, youtube, etc.)
+          <input type="url" id="mapEntrySong" name="song" placeholder="optional" />
+        </label>
+        <label class="entry-form__label">note color
+          <div class="color-picker" id="mapEntryColorPicker">
+            <button type="button" class="color-option" data-color="black" style="background: #1a1a1a;"
+              title="black"></button>
+            <button type="button" class="color-option" data-color="pink"
+              style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);" title="pink"></button>
+            <button type="button" class="color-option" data-color="yellow"
+              style="background: linear-gradient(135deg, #feca57 0%, #ffd89b 100%);" title="yellow"></button>
+            <button type="button" class="color-option" data-color="blue"
+              style="background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);" title="blue"></button>
+            <button type="button" class="color-option" data-color="green"
+              style="background: linear-gradient(135deg, #55efc4 0%, #81ecec 100%);" title="green"></button>
+            <button type="button" class="color-option" data-color="purple"
+              style="background: linear-gradient(135deg, #a29bfe 0%, #dfe6e9 100%);" title="purple"></button>
+            <button type="button" class="color-option" data-color="orange"
+              style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);" title="orange"></button>
+          </div>
+        </label>
+        <input type="hidden" id="mapEntryLat" name="lat" />
+        <input type="hidden" id="mapEntryLng" name="lng" />
+        <input type="hidden" id="mapEntryColor" name="color" value="black" />
+        <button type="submit" class="btn btn--primary">drop this into the world</button>
+      </form>
+      <p class="modal__hint">we’ll attach the precise coordinates from your device — nothing manual.</p>
+      <p class="modal__error" id="mapEntryError" hidden></p>
+      <p class="modal__hint">your entry lives only in this browser. nothing is stored on a server.</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFJHbgcYloTQY8JR6jAxih6ayNudqfep0",
+      authDomain: "sonder031804.firebaseapp.com",
+      projectId: "sonder031804",
+      storageBucket: "sonder031804.firebasestorage.app",
+      messagingSenderId: "996829332000",
+      appId: "1:996829332000:web:b466fdedd6b7fa904bf245",
+      measurementId: "G-E5PP6QVFK7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+  <script src="sonder.js"></script>
+</body>
+
+</html>
