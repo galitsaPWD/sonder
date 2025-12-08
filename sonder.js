@@ -130,6 +130,8 @@ function initMap() {
 
     // Firestore Live Listener
     const markers = {};
+    const markerCoords = {}; // Track how many markers at each coordinate
+
     if (typeof db !== 'undefined') {
         db.collection('entries').onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
@@ -137,7 +139,23 @@ function initMap() {
                 const id = change.doc.id;
 
                 if (change.type === 'added') {
-                    const marker = L.marker([data.lat, data.lng], { icon: createIcon(data.color, data.text, data.songTitle, data.artist) })
+                    let lat = data.lat;
+                    let lng = data.lng;
+
+                    // Create coordinate key and add small offset if duplicate location
+                    const coordKey = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+                    markerCoords[coordKey] = (markerCoords[coordKey] || 0) + 1;
+
+                    if (markerCoords[coordKey] > 1) {
+                        // Offset in a circle pattern
+                        const offsetIndex = markerCoords[coordKey] - 1;
+                        const angle = (offsetIndex * 60) * (Math.PI / 180); // 60 degrees apart
+                        const offsetDistance = 0.0002; // Small offset (~20 meters)
+                        lat += Math.cos(angle) * offsetDistance;
+                        lng += Math.sin(angle) * offsetDistance;
+                    }
+
+                    const marker = L.marker([lat, lng], { icon: createIcon(data.color, data.text, data.songTitle, data.artist) })
                         .addTo(map)
                         .on('click', () => showEntryPreview(data, marker));
                     markers[id] = marker;
