@@ -222,12 +222,13 @@
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     display: flex !important;
     flex-direction: column;
     transform: translateY(20px) scale(0.98);
     animation: cardPopIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     z-index: 10000 !important;
-    max-height: 90vh;
+    height: 80vh;
     pointer-events: auto !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -248,18 +249,21 @@
 }
 
 .entry-card__art-header {
-    height: 220px;
+    height: 180px;
     width: 100%;
     background-size: cover;
     background-position: center;
     position: relative;
+    flex-shrink: 0;
+    border-radius: 32px 32px 0 0;
 }
 
 .entry-card__art-header::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 60%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, transparent 50%);
+    border-radius: 32px 32px 0 0;
 }
 
 .entry-card__content {
