@@ -4,11 +4,10 @@
 /* Map Layout Grid */
 .map-layout {
     display: grid;
-    grid-template-columns: minmax(320px, 380px) 1fr;
+    grid-template-columns: 1fr;
     height: 100vh;
     overflow: hidden;
     position: relative;
-    background: var(--color-bg);
 }
 
 .map-sidebar {
@@ -17,15 +16,23 @@
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
-    border-right: 1px solid rgba(0, 0, 0, 0.04);
-    background: linear-gradient(to right, var(--color-bg), rgba(255, 255, 255, 0.5));
-    position: relative;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(to right, rgba(245, 241, 232, 0.3), rgba(255, 255, 255, 0.3)) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 380px;
     z-index: 10;
 }
 
 [data-theme="dark"] .map-sidebar {
-    border-right: 1px solid rgba(255, 255, 255, 0.03);
-    background: linear-gradient(to right, var(--color-bg), rgba(255, 255, 255, 0.01));
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(to right, rgba(31, 30, 28, 0.3), rgba(255, 255, 255, 0.05)) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
 }
 
 .map-sidebar__section {
@@ -134,9 +141,9 @@
 
 /* Map Canvas */
 .map-canvas-wrapper {
-    position: relative;
+    position: fixed;
+    inset: 0;
     z-index: 1;
-    box-shadow: inset 20px 0 40px -20px rgba(0, 0, 0, 0.05);
 }
 
 .map-canvas-wrapper::after {
@@ -162,6 +169,11 @@
     font-family: inherit;
 }
 
+[data-theme="dark"] .leaflet-container {
+    background: #2a2a2a;
+    /* Lighter dark background instead of pure black */
+}
+
 .leaflet-marker-icon {
     transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1), filter 0.3s ease;
 }
@@ -172,7 +184,7 @@
 .entry-card-overlay {
     position: fixed;
     inset: 0;
-    z-index: 2100;
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -212,6 +224,9 @@
     flex-direction: column;
     transform: translateY(20px) scale(0.98);
     animation: cardPopIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    z-index: 10000;
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
 @keyframes cardPopIn {
@@ -350,15 +365,125 @@
         border-radius: 20px 20px 0 0;
         padding: 1.5rem;
         z-index: 800;
+        max-height: 50vh;
+        overflow-y: auto;
+        background: linear-gradient(to top, var(--color-bg), rgba(255, 255, 255, 0.5));
+        backdrop-filter: blur(12px);
     }
 
-    .map-sidebar__menu,
+    [data-theme="dark"] .map-sidebar {
+        background: linear-gradient(to top, var(--color-bg), rgba(255, 255, 255, 0.01));
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .map-sidebar__section {
+        gap: 0.5rem;
+    }
+
+    .map-sidebar__title {
+        font-size: 1.1rem;
+    }
+
     .map-sidebar__text {
-        display: none;
+        font-size: 0.85rem;
+    }
+
+    .map-sidebar__menu {
+        margin-top: 1rem;
+    }
+
+    .map-sidebar__menu .btn {
+        padding: 0.8rem 1rem;
+        font-size: 0.85rem;
     }
 
     .map-canvas-wrapper {
         height: 100vh;
+    }
+
+    /* Touch-friendly buttons */
+    .map-sidebar__menu .btn {
+        min-height: 44px;
+        padding: 1rem;
+    }
+
+    /* Modal optimization for mobile */
+    .modal {
+        width: 95%;
+        max-width: 95%;
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+    }
+
+    .modal__title {
+        font-size: 1.5rem;
+    }
+
+    .entry-form textarea {
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+    }
+
+    .entry-form input {
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+    }
+
+    /* Entry card preview */
+    .entry-card-overlay .entry-card {
+        width: 95%;
+        max-width: 95%;
+    }
+
+    .entry-card__text {
+        font-size: 1.2rem;
+    }
+
+    /* CRITICAL: Ensure modal is visible and interactive on mobile */
+    .entry-card-overlay {
+        pointer-events: auto !important;
+        touch-action: auto !important;
+    }
+
+    .entry-card-overlay .entry-card {
+        pointer-events: auto !important;
+        position: relative !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        max-height: 90vh;
+        margin: 1rem;
+    }
+
+    .entry-card__content {
+        padding: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .entry-card__close {
+        z-index: 100;
+        pointer-events: auto;
+        touch-action: manipulation;
+    }
+}
+
+@media (max-width: 480px) {
+    .map-sidebar {
+        padding: 1rem;
+        max-height: 35vh;
+    }
+
+    .map-sidebar__title {
+        font-size: 1.1rem;
+    }
+
+    .modal {
+        padding: 1.5rem 1rem;
+    }
+
+    .modal__title {
+        font-size: 1.3rem;
     }
 }
 
@@ -519,10 +644,22 @@
 }
 
 .marker-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #74b9ff;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     position: relative;
     z-index: 2;
     transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
     animation: markerPulse 3s infinite ease-in-out;
+}
+
+[data-theme="dark"] .marker-dot {
+    background-color: white;
+    border: 2px solid #1a1a1a;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
 }
 
 @keyframes markerPulse {
@@ -617,12 +754,12 @@
 .bubble-song {
     font-size: 0.7rem;
     opacity: 0.9;
-    margin-bottom: 2px;
-    height: 14px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    white-space: nowrap;
     overflow: hidden;
-    position: relative;
-    width: 100%;
-    display: flex;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 
 .marquee-container {

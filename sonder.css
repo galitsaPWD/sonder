@@ -9,6 +9,11 @@
   --color-accent-soft: rgba(240, 220, 180, 0.6);
   --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.08);
   --shadow-glow: 0 0 15px rgba(240, 220, 180, 0.4);
+
+  /* Scrollbar colors */
+  --scrollbar-track: rgba(0, 0, 0, 0.05);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.35);
 }
 
 [data-theme="dark"] {
@@ -18,6 +23,11 @@
   --color-muted: #a8a298;
   --shadow-soft: 0 20px 70px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 20px rgba(240, 220, 180, 0.15);
+
+  /* Scrollbar colors */
+  --scrollbar-track: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.35);
 }
 
 /* Reset & Base */
@@ -39,6 +49,19 @@ body.sonder-body {
   -webkit-font-smoothing: antialiased;
   transition: background 0.3s ease, color 0.3s ease;
   animation: pageFadeIn 0.8s ease-out;
+
+  /* Sticky footer layout */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Ensure main content grows to push footer down */
+body.sonder-body>main,
+body.sonder-body>.hero,
+body.sonder-body>.section,
+body.sonder-body>.map-layout {
+  flex: 1;
 }
 
 @keyframes pageFadeIn {
@@ -51,6 +74,41 @@ body.sonder-body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Custom Scrollbar */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
 }
 
 h1,
@@ -109,6 +167,7 @@ a:hover {
   gap: 1.4rem;
   font-size: 0.85rem;
   text-transform: lowercase;
+  align-items: center;
 }
 
 /* Components: Footer */
@@ -251,6 +310,23 @@ a:hover {
   flex-direction: column;
   gap: 1.2rem;
   overflow: hidden;
+
+  /* Fade-in animation */
+  opacity: 0;
+  animation: fadeInCard 0.4s ease-out forwards;
+  will-change: opacity, transform;
+}
+
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 [data-theme="dark"] .entry-card {
@@ -417,5 +493,136 @@ a:hover {
     opacity: 1;
     transform: translateY(0);
     filter: blur(0);
+  }
+}
+
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+
+@media (max-width: 768px) {
+
+  /* Header - Mobile */
+  .site-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .site-header__logo {
+    font-size: 0.8rem;
+  }
+
+  .site-header__nav {
+    gap: 1rem;
+    font-size: 0.75rem;
+  }
+
+  .theme-toggle {
+    font-size: 1rem;
+  }
+
+  /* Sections - Mobile */
+  .section {
+    padding: 3rem 1.5rem;
+  }
+
+  .section__inner {
+    max-width: 100%;
+  }
+
+  /* Page Titles - Mobile */
+  .page-title {
+    font-size: clamp(2.5rem, 12vw, 4rem);
+    margin-bottom: 1rem;
+  }
+
+  .page-subtitle {
+    font-size: clamp(0.9rem, 4vw, 1.2rem);
+    margin-bottom: 2rem;
+  }
+
+  /* Glass Panels - Mobile */
+  .glass-panel {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  /* Entry Cards - Mobile */
+  .entry-card {
+    padding: 1.5rem 1.2rem;
+    border-radius: 16px;
+    gap: 1rem;
+  }
+
+  .entry-card__text {
+    font-size: 1rem;
+  }
+
+  .entry-card__location {
+    font-size: 0.95rem;
+  }
+
+  .entry-card__timestamp {
+    font-size: 0.7rem;
+  }
+
+  /* Buttons - Mobile */
+  .btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  .btn--primary {
+    padding: 0.8rem 2rem;
+  }
+
+  /* Footer - Mobile */
+  .site-footer {
+    padding: 3rem 1.5rem 2rem;
+  }
+
+  .site-footer__inner {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .site-footer__nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .site-footer__nav a {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Extra small devices */
+  .site-header {
+    padding: 0.8rem 1rem;
+  }
+
+  .site-header__logo {
+    font-size: 0.75rem;
+  }
+
+  .site-header__nav {
+    gap: 0.8rem;
+    font-size: 0.7rem;
+  }
+
+  .section {
+    padding: 2rem 1rem;
+  }
+
+  .glass-panel {
+    padding: 1.2rem;
+  }
+
+  .entry-card {
+    padding: 1.2rem 1rem;
+  }
+
+  .page-title {
+    font-size: clamp(2rem, 12vw, 3rem);
   }
 }

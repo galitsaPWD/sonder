@@ -10,6 +10,7 @@
 .archive-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 0.5rem;
 }
 
@@ -29,5 +30,23 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .archive-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .section__inner {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .archive-grid {
+        gap: 0.8rem;
     }
 }

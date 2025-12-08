@@ -30,11 +30,50 @@ function initMap() {
         maxBounds: [[-90, -180], [90, 180]]
     }).setView([20, 0], 3);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    // Light theme tile layer
+    const lightTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 19
-    }).addTo(map);
+    });
+
+    // Dark theme tile layer (using dark_nolabels + labels_only for white labels)
+    const darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    });
+
+    const darkLabelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 19,
+        pane: 'shadowPane' // Render labels on top
+    });
+
+    // Function to switch tile layers based on theme
+    const updateMapTheme = () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            map.removeLayer(lightTileLayer);
+            darkTileLayer.addTo(map);
+            darkLabelsLayer.addTo(map);
+        } else {
+            map.removeLayer(darkTileLayer);
+            map.removeLayer(darkLabelsLayer);
+            lightTileLayer.addTo(map);
+        }
+    };
+
+    // Initialize with correct theme
+    updateMapTheme();
+
+    // Listen for theme changes
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            setTimeout(updateMapTheme, 50); // Small delay to let theme attribute update
+        });
+    }
 
     // Custom Icon
     const createIcon = (color = 'black', text = '...', songTitle = '', artist = '') => {
@@ -44,15 +83,19 @@ function initMap() {
 
         const previewText = text.length > 20 ? text.substring(0, 20) + '...' : text;
 
-        if (songTitle && artist) {
-            const songInfo = `${escapeHtml(songTitle)} - ${escapeHtml(artist)}`;
-            // Duplicate text with separator for seamless loop
-            const displayStr = `${songInfo}&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;${songInfo}&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;`;
+        // Show song info if we have either title or artist
+        if (songTitle || artist) {
+            let songInfo = '';
+            if (songTitle && artist) {
+                songInfo = `${escapeHtml(songTitle)} - ${escapeHtml(artist)}`;
+            } else if (songTitle) {
+                songInfo = escapeHtml(songTitle);
+            } else {
+                songInfo = escapeHtml(artist);
+            }
 
             contentHtml = `
-                <div class="bubble-song marquee-container">
-                    <div class="marquee-text">${displayStr}</div>
-                </div>
+                <div class="bubble-song">${songInfo}</div>
                 <div class="bubble-text">${escapeHtml(previewText)}</div>
             `;
             bubbleClass += ' has-song';
@@ -63,15 +106,7 @@ function initMap() {
         return L.divIcon({
             className: 'custom-marker',
             html: `<div style="position: relative;">
-                <div class="marker-dot" style="
-                    width: 12px;
-                    height: 12px;
-                    background-color: #74b9ff;
-                    border-radius: 50%;
-                    border: 2px solid white;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-                    animation-delay: ${delay}s;
-                "></div>
+                <div class="marker-dot" style="animation-delay: ${delay}s;"></div>
                 <div class="${bubbleClass} note-bubble--${color}" style="background: ${getColorCode(color)}; color: ${color === 'black' ? '#fff' : '#1a1a1a'};">${contentHtml}</div>
             </div>`,
             iconSize: [16, 16],
@@ -323,7 +358,7 @@ function showEntryPreview(data, marker) {
             const type = spotifyMatch[1];
             const id = spotifyMatch[2];
             mediaContent = `<div style="margin-top: 1.5rem; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <iframe src="https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                <iframe src="https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
             </div>`;
         } else {
             mediaContent = `<div class="entry-card__links" style="margin-top: 1rem;"><a href="${escapeHtml(data.song)}" target="_blank" rel="noopener noreferrer">♪ Listen to song</a></div>`;
@@ -386,8 +421,8 @@ function initArchive() {
             const data = doc.data();
             const el = document.createElement('div');
             el.className = 'entry-card';
-            // Staggered Animation Delay
-            el.style.animationDelay = `${index * 0.1}s`;
+            // Staggered Animation Delay - capped to prevent long delays
+            el.style.animationDelay = `${Math.min(index, 20) * 0.03}s`;
 
             el.innerHTML = `
                 <div class="entry-card__location">${(data.lat).toFixed(4)}N, ${(data.lng).toFixed(4)}E</div>
@@ -457,14 +492,13 @@ function initPlaylist() {
                 el.href = data.song;
                 el.target = "_blank";
                 el.className = 'track-row';
-                el.style.animationDelay = `${index * 0.05}s`;
+                el.style.animationDelay = `${Math.min(index, 20) * 0.03}s`;
 
                 el.innerHTML = `
                     <div class="track-icon">
                         ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; height:100%; object-fit:cover;">` : '<span>▶</span>'}
                     </div>
                     <div class="track-info">
-                        <div class="track-message">"${escapeHtml(data.text)}"</div>
                         <div class="track-meta">
                             ${data.songTitle ? `<span>${escapeHtml(data.songTitle)}</span>` : 'Unknown Track'}
                             ${data.artist ? `<span>• ${escapeHtml(data.artist)}</span>` : ''}
