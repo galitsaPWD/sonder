@@ -74,10 +74,12 @@
           <small style="color: var(--color-muted); font-size: 0.75rem; margin-top: 0.5rem; display: block;">max 5mb •
             jpg, png, or webp</small>
         </label>
-        <div id="imagePreview" style="display: none; margin-top: 0.5rem; position: relative;">
-          <img id="imagePreviewImg"
-            style="max-width: 100%; border-radius: 12px; max-height: 200px; object-fit: cover;" />
-          <button type="button" id="removeImage" class="image-remove-btn" title="Remove image">×</button>
+        <div id="imagePreview" style="display: none; margin-top: 0.5rem;">
+          <div style="position: relative; display: inline-block; max-width: 100%;">
+            <img id="imagePreviewImg"
+              style="max-width: 100%; border-radius: 12px; max-height: 200px; object-fit: cover; display: block;" />
+            <button type="button" id="removeImage" class="image-remove-btn" title="Remove image">×</button>
+          </div>
         </div>
         <label class="entry-form__label">note color
           <div class="color-picker" id="mapEntryColorPicker">

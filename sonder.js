@@ -75,6 +75,20 @@ function initMap() {
         });
     }
 
+    // Check if navigating from archive with specific coordinates
+    const navLat = localStorage.getItem('sonder-nav-lat');
+    const navLng = localStorage.getItem('sonder-nav-lng');
+    if (navLat && navLng) {
+        setTimeout(() => {
+            map.flyTo([parseFloat(navLat), parseFloat(navLng)], 13, {
+                duration: 4,
+                easeLinearity: 1
+            });
+        }, 500);
+        localStorage.removeItem('sonder-nav-lat');
+        localStorage.removeItem('sonder-nav-lng');
+    }
+
     // Custom Icon
     const createIcon = (color = 'black', text = '...', songTitle = '', artist = '') => {
         const delay = Math.random() * -4; // random start time
