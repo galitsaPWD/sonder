@@ -85,7 +85,7 @@
       </form>
       <p class="modal__hint">we’ll attach the precise coordinates from your device — nothing manual.</p>
       <p class="modal__error" id="mapEntryError" hidden></p>
-      <p class="modal__hint">your entry lives only in this browser. nothing is stored on a server.</p>
+      <p class="modal__hint">your entry will be part of the world, forever.</p>
     </div>
   </div>
 
@@ -106,7 +106,7 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    window.db = firebase.firestore();
   </script>
   <script src="sonder.js"></script>
 </body>

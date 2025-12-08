@@ -1,16 +1,6 @@
 /* SONDER - Main Application Logic */
 
-document.addEventListener('DOMContentLoaded', () => {
-    const page = document.documentElement.dataset.page;
-
-    // Initialize global UI
-    initTheme();
-
-    // Page specific logic
-    if (page === 'map') initMap();
-    if (page === 'archive') initArchive();
-    if (page === 'playlist') initPlaylist();
-});
+/* SONDER - Main Application Logic */
 
 /* --- Global UI --- */
 function initTheme() {
@@ -275,7 +265,8 @@ function initMap() {
 
             // Save to Firestore
             try {
-                await db.collection('entries').add(cleanEntry(entry));
+                if (!window.db) throw new Error("Database connection not initialized");
+                await window.db.collection('entries').add(cleanEntry(entry));
                 e.target.reset();
                 modal.hidden = true;
 
@@ -401,8 +392,8 @@ function initArchive() {
 
     let allDocs = [];
 
-    if (typeof db !== 'undefined') {
-        db.collection('entries').orderBy('timestamp', 'desc').limit(50).get().then(snap => {
+    if (window.db) {
+        window.db.collection('entries').orderBy('timestamp', 'desc').limit(50).get().then(snap => {
             allDocs = snap.docs;
             render(allDocs);
         }).catch(err => {
@@ -433,8 +424,8 @@ function initPlaylist() {
     const list = document.getElementById('playlistList');
     if (!list) return;
 
-    if (typeof db !== 'undefined') {
-        db.collection('entries').where('song', '!=', '').limit(50).get().then(snap => {
+    if (window.db) {
+        window.db.collection('entries').where('song', '!=', '').limit(50).get().then(snap => {
             if (snap.empty) {
                 list.innerHTML = '<p>No songs found yet.</p>';
                 return;
@@ -494,3 +485,29 @@ function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+/* --- Initialization --- */
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Theme globally
+    if (typeof initTheme === 'function') {
+        initTheme();
+    }
+
+    // Router based on data-page or element existence
+    const page = document.documentElement.getAttribute('data-page');
+
+    // Map Page
+    if (document.getElementById('map')) {
+        if (typeof initMap === 'function') initMap();
+    }
+
+    // Archive Page
+    if (page === 'archive' || document.getElementById('archiveGrid')) {
+        if (typeof initArchive === 'function') initArchive();
+    }
+
+    // Playlist Page
+    if (page === 'playlist' || document.getElementById('playlistList')) {
+        if (typeof initPlaylist === 'function') initPlaylist();
+    }
+});
