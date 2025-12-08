@@ -587,14 +587,17 @@ function initArchive() {
                 
                 <div class="entry-card__meta">
                     <div class="entry-card__timestamp">${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</div>
-                    ${data.song ? `
-                        <a href="${data.song}" target="_blank" class="song-pill" onclick="event.stopPropagation();">
-                            ${data.thumbnail ? `<img src="${data.thumbnail}" loading="lazy">` : '<span>🎵</span>'}
-                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">
-                                ${escapeHtml(data.songTitle || 'Linked Song')}
-                            </span>
-                        </a>
-                    ` : ''}
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        ${data.image ? '<span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--color-bg-alt); border-radius: 6px; color: var(--color-muted); font-weight: 500; letter-spacing: 0.05em;" title="Has image">IMG</span>' : ''}
+                        ${data.song ? `
+                            <a href="${data.song}" target="_blank" class="song-pill" onclick="event.stopPropagation();">
+                                ${data.thumbnail ? `<img src="${data.thumbnail}" loading="lazy">` : '<span>🎵</span>'}
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">
+                                    ${escapeHtml(data.songTitle || 'Linked Song')}
+                                </span>
+                            </a>
+                        ` : ''}
+                    </div>
                 </div>
             `;
 
