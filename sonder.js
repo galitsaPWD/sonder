@@ -239,11 +239,15 @@ function initMap() {
 
             const timestamp = firebase.firestore.FieldValue.serverTimestamp();
 
+            // Get song info from hidden fields OR manual inputs
+            const finalSongTitle = formData.get('songTitle') || formData.get('manualTitle');
+            const finalArtist = formData.get('artist') || formData.get('manualArtist');
+
             const entry = {
                 text: formData.get('text'),
                 song: songUrl,
-                songTitle: formData.get('songTitle'),
-                artist: formData.get('artist'),
+                songTitle: finalSongTitle,
+                artist: finalArtist,
                 thumbnail: formData.get('thumbnail'),
                 color: formData.get('color'),
                 lat: parseFloat(formData.get('lat')),

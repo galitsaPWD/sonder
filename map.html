@@ -78,6 +78,21 @@
               style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);" title="orange"></button>
           </div>
         </label>
+
+        <!-- Hidden inputs for auto-fetched metadata -->
+        <input type="hidden" name="songTitle" id="mapEntrySongTitle" />
+        <input type="hidden" name="artist" id="mapEntryArtist" />
+        <input type="hidden" name="thumbnail" id="mapEntryThumbnail" />
+
+        <!-- Manual inputs (shown if fetch fails) -->
+        <div id="manualSongInputs" style="display: none;">
+          <label class="entry-form__label">song title
+            <input type="text" name="manualTitle" id="mapEntryManualTitle" placeholder="e.g. Midnight City" />
+          </label>
+          <label class="entry-form__label">artist
+            <input type="text" name="manualArtist" id="mapEntryManualArtist" placeholder="e.g. M83" />
+          </label>
+        </div>
         <input type="hidden" id="mapEntryLat" name="lat" />
         <input type="hidden" id="mapEntryLng" name="lng" />
         <input type="hidden" id="mapEntryColor" name="color" value="black" />
