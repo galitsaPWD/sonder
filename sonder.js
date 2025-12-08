@@ -72,7 +72,7 @@ function initMap() {
                     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
                     animation-delay: ${delay}s;
                 "></div>
-                <div class="${bubbleClass}" style="background: ${getColorCode(color)}; color: ${color === 'black' ? '#fff' : '#1a1a1a'};">${contentHtml}</div>
+                <div class="${bubbleClass} note-bubble--${color}" style="background: ${getColorCode(color)}; color: ${color === 'black' ? '#fff' : '#1a1a1a'};">${contentHtml}</div>
             </div>`,
             iconSize: [16, 16],
             iconAnchor: [8, 8]
@@ -124,8 +124,10 @@ function initMap() {
     if (locateBtn) {
         locateBtn.addEventListener('click', () => {
             status.innerText = "locating you...";
+            status.removeAttribute('data-error');
             if (!navigator.geolocation) {
                 status.innerText = "geolocation not supported.";
+                status.setAttribute('data-error', 'true');
                 return;
             }
             navigator.geolocation.getCurrentPosition(
@@ -135,6 +137,7 @@ function initMap() {
                         lng: pos.coords.longitude
                     };
                     status.innerText = "location found.";
+                    status.removeAttribute('data-error');
                     if (addBtn) addBtn.disabled = false;
                     map.flyTo([userLocation.lat, userLocation.lng], 13);
                 },
@@ -205,9 +208,11 @@ function initMap() {
             // Auto-Fetch Logic
             // Only try to fetch if we don't already have values (user didn't manually enter them)
             const currentTitle = formData.get('songTitle');
+            const manualTitle = formData.get('manualTitle');
             const currentArtist = formData.get('artist');
+            const manualArtist = formData.get('manualArtist');
 
-            if (songUrl && songUrl.includes('spotify.com') && (!currentTitle || !currentArtist)) {
+            if (songUrl && songUrl.includes('spotify.com') && (!currentTitle && !manualTitle)) {
                 try {
                     const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(songUrl)}`;
                     const response = await fetch(oembedUrl);
@@ -311,8 +316,8 @@ function showEntryPreview(data, marker) {
     let isSpotify = false;
 
     if (data.song) {
-        // Simple regex for spotify track/episode
-        const spotifyMatch = data.song.match(/spotify\.com\/(track|episode)\/([a-zA-Z0-9]+)/);
+        // Robust regex for spotify track/episode (handles international URLs like /intl-es/)
+        const spotifyMatch = data.song.match(/spotify\.com\/.*(track|episode)\/([a-zA-Z0-9]+)/);
         if (spotifyMatch) {
             isSpotify = true;
             const type = spotifyMatch[1];
@@ -385,10 +390,20 @@ function initArchive() {
             el.style.animationDelay = `${index * 0.1}s`;
 
             el.innerHTML = `
-                <div class="entry-card__location">${(data.lat).toFixed(2)}, ${(data.lng).toFixed(2)}</div>
+                <div class="entry-card__location">${(data.lat).toFixed(4)}N, ${(data.lng).toFixed(4)}E</div>
                 <div class="entry-card__text">${escapeHtml(data.text)}</div>
-                ${data.song ? `<div style="font-size:0.8rem; margin-top:1rem; opacity:0.7;">🎵 ${data.songTitle || 'Linked Song'}</div>` : ''}
-                <div class="entry-card__timestamp">${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString() : ''}</div>
+                
+                <div class="entry-card__meta">
+                    <div class="entry-card__timestamp">${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</div>
+                    ${data.song ? `
+                        <a href="${data.song}" target="_blank" class="song-pill">
+                            ${data.thumbnail ? `<img src="${data.thumbnail}" loading="lazy">` : '<span>🎵</span>'}
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">
+                                ${escapeHtml(data.songTitle || 'Linked Song')}
+                            </span>
+                        </a>
+                    ` : ''}
+                </div>
             `;
             grid.appendChild(el);
         });
@@ -446,7 +461,7 @@ function initPlaylist() {
 
                 el.innerHTML = `
                     <div class="track-icon">
-                        ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; height:100%; border-radius:8px; object-fit:cover;">` : '▶'}
+                        ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; height:100%; object-fit:cover;">` : '<span>▶</span>'}
                     </div>
                     <div class="track-info">
                         <div class="track-message">"${escapeHtml(data.text)}"</div>
@@ -455,7 +470,9 @@ function initPlaylist() {
                             ${data.artist ? `<span>• ${escapeHtml(data.artist)}</span>` : ''}
                         </div>
                     </div>
-                    <div class="track-action">Listen &rarr;</div>
+                    <div class="track-action">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
                 `;
                 list.appendChild(el);
             });

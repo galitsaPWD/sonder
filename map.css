@@ -573,29 +573,34 @@
     /* Matches default bubble color */
 }
 
-/* Dynamic arrow coloring based on bubble background */
-.note-bubble[style*="background: rgb(255, 154, 158)"]::after {
+
+/* Class-based arrow coloring */
+.note-bubble--pink::after {
     border-top-color: #ff9a9e;
 }
 
-.note-bubble[style*="background: rgb(254, 202, 87)"]::after {
+.note-bubble--yellow::after {
     border-top-color: #feca57;
 }
 
-.note-bubble[style*="background: rgb(116, 185, 255)"]::after {
+.note-bubble--blue::after {
     border-top-color: #74b9ff;
 }
 
-.note-bubble[style*="background: rgb(85, 239, 196)"]::after {
+.note-bubble--green::after {
     border-top-color: #55efc4;
 }
 
-.note-bubble[style*="background: rgb(162, 155, 254)"]::after {
+.note-bubble--purple::after {
     border-top-color: #a29bfe;
 }
 
-.note-bubble[style*="background: rgb(253, 121, 168)"]::after {
+.note-bubble--orange::after {
     border-top-color: #fd79a8;
+}
+
+.note-bubble--black::after {
+    border-top-color: #1a1a1a;
 }
 
 
