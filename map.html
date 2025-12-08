@@ -61,9 +61,24 @@
       <form class="entry-form" id="mapEntryForm">
         <textarea name="text" id="mapEntryText" rows="4" placeholder="a memory, a line from a song, a passing feeling"
           required></textarea>
-        <label class="entry-form__label">song link (spotify, youtube, etc.)
+        <label class="entry-form__label">spotify link (optional)
           <input type="url" id="mapEntrySong" name="song" placeholder="optional" />
         </label>
+        <label class="entry-form__label">add a photo (optional)
+          <input type="file" id="mapEntryImage" name="image" accept="image/jpeg,image/png,image/webp"
+            style="display: none;" />
+          <button type="button" class="file-upload-btn" id="fileUploadBtn">
+            <span style="margin-right: 0.5rem;">
+              choose image</span>
+          </button>
+          <small style="color: var(--color-muted); font-size: 0.75rem; margin-top: 0.5rem; display: block;">max 5mb •
+            jpg, png, or webp</small>
+        </label>
+        <div id="imagePreview" style="display: none; margin-top: 0.5rem; position: relative;">
+          <img id="imagePreviewImg"
+            style="max-width: 100%; border-radius: 12px; max-height: 200px; object-fit: cover;" />
+          <button type="button" id="removeImage" class="image-remove-btn" title="Remove image">×</button>
+        </div>
         <label class="entry-form__label">note color
           <div class="color-picker" id="mapEntryColorPicker">
             <button type="button" class="color-option" data-color="black" style="background: #1a1a1a;"
@@ -105,6 +120,25 @@
       <p class="modal__hint">we’ll attach the precise coordinates from your device — nothing manual.</p>
       <p class="modal__error" id="mapEntryError" hidden></p>
       <p class="modal__hint">your entry will be part of the world, forever.</p>
+    </div>
+  </div>
+
+  <!-- Welcome Modal for First-Time Users -->
+  <div class="modal-overlay" id="welcomeModal" hidden>
+    <div class="modal modal--welcome">
+      <button class="modal__close" id="welcomeModalClose" aria-label="Close">×</button>
+      <h2 class="modal__title">welcome to sonder</h2>
+      <div class="modal__content">
+        <p style="margin-bottom: 1rem; line-height: 1.6;">
+          this is a shared space where people leave traces of their moments—memories, feelings, songs they were
+          listening to.
+        </p>
+        <p style="margin-bottom: 1.5rem; line-height: 1.6;">
+          tap refresh location to find where you are, drop a message with add entry, or just wander the map and read
+          what everyone else has left behind.
+        </p>
+        <button class="btn btn--primary" id="welcomeModalGotIt" style="width: 100%;">got it, let's explore</button>
+      </div>
     </div>
   </div>
 

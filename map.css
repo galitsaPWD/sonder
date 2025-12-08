@@ -192,6 +192,7 @@
     backdrop-filter: blur(8px);
     opacity: 0;
     animation: overlayFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: auto !important;
 }
 
 @keyframes overlayFadeIn {
@@ -219,14 +220,17 @@
         0 20px 40px -10px rgba(0, 0, 0, 0.1),
         0 0 0 1px rgba(255, 255, 255, 0.3) inset;
     position: relative;
-    overflow: hidden;
-    display: flex;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex !important;
     flex-direction: column;
     transform: translateY(20px) scale(0.98);
     animation: cardPopIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    z-index: 10000;
-    max-height: 85vh;
-    overflow-y: auto;
+    z-index: 10000 !important;
+    max-height: 90vh;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 @keyframes cardPopIn {
@@ -344,8 +348,45 @@
 }
 
 [data-theme="dark"] .entry-card__links a:hover {
-    background: var(--color-accent);
-    color: #1a1a1a;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* User Uploaded Image Styles */
+.entry-card__user-image {
+    position: relative;
+    margin-top: 1.5rem;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    background: var(--color-bg-alt);
+}
+
+.entry-card__user-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+}
+
+.entry-card__user-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    cursor: default;
+    pointer-events: auto;
+}
+
+[data-theme="dark"] .entry-card__user-image {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 /* Mobile Reponsive */
@@ -440,34 +481,6 @@
     .entry-card__text {
         font-size: 1.2rem;
     }
-
-    /* CRITICAL: Ensure modal is visible and interactive on mobile */
-    .entry-card-overlay {
-        pointer-events: auto !important;
-        touch-action: auto !important;
-    }
-
-    .entry-card-overlay .entry-card {
-        pointer-events: auto !important;
-        position: relative !important;
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        max-height: 90vh;
-        margin: 1rem;
-    }
-
-    .entry-card__content {
-        padding: 1.5rem;
-        position: relative;
-        z-index: 1;
-    }
-
-    .entry-card__close {
-        z-index: 100;
-        pointer-events: auto;
-        touch-action: manipulation;
-    }
 }
 
 @media (max-width: 480px) {
@@ -487,6 +500,24 @@
     .modal__title {
         font-size: 1.3rem;
     }
+}
+
+/* Welcome Modal Specific Styles */
+.modal--welcome {
+    max-width: 500px;
+    text-align: center;
+}
+
+.modal--welcome .modal__title {
+    margin-bottom: 1.5rem;
+}
+
+.modal--welcome .modal__content {
+    color: var(--color-text);
+}
+
+.modal--welcome .modal__content p {
+    color: var(--color-muted);
 }
 
 /* --- Modal Styles --- */
@@ -520,6 +551,9 @@
     position: relative;
     transform: translateY(20px);
     animation: cardPopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 [data-theme="dark"] .modal {
@@ -745,8 +779,80 @@
 
 .custom-marker:hover .note-bubble {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-    pointer-events: auto;
+}
+
+/* File Upload Button Styles */
+.file-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-bg-alt);
+    border: 2px dashed var(--color-muted);
+    border-radius: 12px;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.file-upload-btn:hover {
+    background: var(--color-accent);
+    border-color: var(--color-text);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .file-upload-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .file-upload-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.file-upload-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-bg-alt);
+    border-color: var(--color-muted);
+}
+
+.file-upload-btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Image Remove Button */
+.image-remove-btn {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.image-remove-btn:hover {
+    background: rgba(255, 0, 0, 0.8);
+    transform: scale(1.1) rotate(90deg);
 }
 
 .custom-marker:hover .marker-dot {

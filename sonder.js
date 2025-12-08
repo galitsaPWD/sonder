@@ -224,6 +224,128 @@ function initMap() {
             }
         });
 
+        // Image upload handling
+        const imageInput = document.getElementById('mapEntryImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const imagePreviewImg = document.getElementById('imagePreviewImg');
+        const removeImageBtn = document.getElementById('removeImage');
+        const fileUploadBtn = document.getElementById('fileUploadBtn');
+        let selectedImageFile = null;
+
+        // Trigger file input when button is clicked
+        if (fileUploadBtn && imageInput) {
+            fileUploadBtn.addEventListener('click', () => {
+                imageInput.click();
+            });
+        }
+
+        if (imageInput) {
+            imageInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    alert('please use jpg, png, or webp format');
+                    imageInput.value = '';
+                    return;
+                }
+
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('image must be under 5mb');
+                    imageInput.value = '';
+                    return;
+                }
+
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreviewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    // Disable upload button when image is selected
+                    if (fileUploadBtn) {
+                        fileUploadBtn.disabled = true;
+                        fileUploadBtn.textContent = 'image selected';
+                    }
+                };
+                reader.readAsDataURL(file);
+
+                selectedImageFile = file;
+            });
+
+            if (removeImageBtn) {
+                removeImageBtn.addEventListener('click', () => {
+                    imageInput.value = '';
+                    imagePreview.style.display = 'none';
+                    imagePreviewImg.src = '';
+                    selectedImageFile = null;
+                    // Re-enable upload button when image is removed
+                    if (fileUploadBtn) {
+                        fileUploadBtn.disabled = false;
+                        fileUploadBtn.innerHTML = '<span style="margin-right: 0.5rem;">choose image</span>';
+                    }
+                });
+            }
+        }
+
+        // Helper function to compress image
+        async function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Resize if too large (max 1200px width)
+                        const maxWidth = 1200;
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Convert to blob with 80% quality
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, file.type, 0.8);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Helper function to upload image to Imgur (free)
+        async function uploadToImgur(imageFile) {
+            const compressedImage = await compressImage(imageFile);
+            const formData = new FormData();
+            formData.append('image', compressedImage);
+
+            const response = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Client-ID 546c25a59c58ad7' // Public Imgur client ID
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                return data.data.link;
+            } else {
+                throw new Error('Image upload failed');
+            }
+        }
+
         // Submit Handler with Auto-Fetch
         const form = document.getElementById('mapEntryForm');
         form.addEventListener('submit', async (e) => {
@@ -283,12 +405,24 @@ function initMap() {
             const finalSongTitle = formData.get('songTitle') || formData.get('manualTitle');
             const finalArtist = formData.get('artist') || formData.get('manualArtist');
 
+            // Upload image to Imgur if selected
+            let imageUrl = null;
+            if (selectedImageFile) {
+                try {
+                    imageUrl = await uploadToImgur(selectedImageFile);
+                } catch (error) {
+                    console.error('Image upload failed:', error);
+                    alert('image upload failed. entry will be saved without image.');
+                }
+            }
+
             const entry = {
                 text: formData.get('text'),
                 song: songUrl,
                 songTitle: finalSongTitle,
                 artist: finalArtist,
                 thumbnail: formData.get('thumbnail'),
+                image: imageUrl, // Add uploaded image URL
                 color: formData.get('color'),
                 lat: parseFloat(formData.get('lat')),
                 lng: parseFloat(formData.get('lng')),
@@ -375,6 +509,14 @@ function showEntryPreview(data, marker) {
         headerHtml = `<button class="entry-card__close">×</button>`;
     }
 
+    // User uploaded image (with protection)
+    let userImageHtml = '';
+    if (data.image) {
+        userImageHtml = `<div class="entry-card__user-image">
+            <img src="${escapeHtml(data.image)}" alt="user photo" oncontextmenu="return false;" draggable="false" />
+        </div>`;
+    }
+
     // Style logic for creating a "wrapper" content div if no header
     const contentStyle = data.thumbnail ? '' : 'padding-top: 3rem;';
 
@@ -386,6 +528,7 @@ function showEntryPreview(data, marker) {
             <div class="entry-card__location">${(data.lat).toFixed(4)}, ${(data.lng).toFixed(4)}</div>
             <div class="entry-card__timestamp">${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString() : 'Just now'}</div>
             <div class="entry-card__text" style="border-left: 3px solid ${getColorCode(data.color)}; padding-left: 12px;">${escapeHtml(data.text)}</div>
+            ${userImageHtml}
             ${mediaContent}
         </div>
       </div>
@@ -431,7 +574,7 @@ function initArchive() {
                 <div class="entry-card__meta">
                     <div class="entry-card__timestamp">${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</div>
                     ${data.song ? `
-                        <a href="${data.song}" target="_blank" class="song-pill">
+                        <a href="${data.song}" target="_blank" class="song-pill" onclick="event.stopPropagation();">
                             ${data.thumbnail ? `<img src="${data.thumbnail}" loading="lazy">` : '<span>🎵</span>'}
                             <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">
                                 ${escapeHtml(data.songTitle || 'Linked Song')}
@@ -440,6 +583,16 @@ function initArchive() {
                     ` : ''}
                 </div>
             `;
+
+            // Make card clickable to navigate to map location
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', () => {
+                // Store coordinates in localStorage for map to read
+                localStorage.setItem('sonder-nav-lat', data.lat);
+                localStorage.setItem('sonder-nav-lng', data.lng);
+                window.location.href = 'map.html';
+            });
+
             grid.appendChild(el);
         });
     };
@@ -564,5 +717,46 @@ document.addEventListener('DOMContentLoaded', () => {
     // Playlist Page
     if (page === 'playlist' || document.getElementById('playlistList')) {
         if (typeof initPlaylist === 'function') initPlaylist();
+    }
+
+    // Welcome Modal for First-Time Users
+    const welcomeModal = document.getElementById('welcomeModal');
+    const welcomeModalClose = document.getElementById('welcomeModalClose');
+    const welcomeModalGotIt = document.getElementById('welcomeModalGotIt');
+
+    if (welcomeModal) {
+        // Check if user has seen the welcome modal before
+        const hasSeenWelcome = localStorage.getItem('sonder-welcome-seen');
+
+        if (!hasSeenWelcome) {
+            // Show welcome modal for first-time users
+            setTimeout(() => {
+                welcomeModal.hidden = false;
+            }, 500); // Small delay for better UX
+        }
+
+        // Close button handler
+        if (welcomeModalClose) {
+            welcomeModalClose.addEventListener('click', () => {
+                welcomeModal.hidden = true;
+                localStorage.setItem('sonder-welcome-seen', 'true');
+            });
+        }
+
+        // "Got it" button handler
+        if (welcomeModalGotIt) {
+            welcomeModalGotIt.addEventListener('click', () => {
+                welcomeModal.hidden = true;
+                localStorage.setItem('sonder-welcome-seen', 'true');
+            });
+        }
+
+        // Close on overlay click
+        welcomeModal.addEventListener('click', (e) => {
+            if (e.target === welcomeModal) {
+                welcomeModal.hidden = true;
+                localStorage.setItem('sonder-welcome-seen', 'true');
+            }
+        });
     }
 });
