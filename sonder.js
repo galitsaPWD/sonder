@@ -18,6 +18,92 @@ function initTheme() {
     });
 }
 
+/* --- Sidebar Toggle --- */
+function initSidebarToggle() {
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('mapSidebar');
+    const dragHandle = document.getElementById('sidebarDragHandle');
+
+    if (!sidebar) return;
+
+    // Check saved state
+    const savedState = localStorage.getItem('sonder-sidebar-hidden');
+    if (savedState === 'true') {
+        sidebar.classList.add('hidden');
+        if (toggleBtn) toggleBtn.classList.add('active');
+    }
+
+    // Desktop toggle button
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            toggleBtn.classList.toggle('active');
+
+            // Save state
+            const isHidden = sidebar.classList.contains('hidden');
+            localStorage.setItem('sonder-sidebar-hidden', isHidden);
+        });
+    }
+
+    // Mobile drag/swipe functionality
+    if (dragHandle) {
+        let startY = 0;
+        let isDragging = false;
+        const threshold = 30; // pixels to swipe before toggling
+
+        dragHandle.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        }, { passive: true });
+
+        dragHandle.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+
+            const endY = e.changedTouches[0].clientY;
+            const diff = endY - startY;
+            isDragging = false;
+
+            const isHidden = sidebar.classList.contains('hidden');
+
+            // Toggle if swiped enough
+            if (Math.abs(diff) > threshold) {
+                if (diff > 0 && !isHidden) {
+                    // Swiped down while visible - hide sidebar
+                    sidebar.classList.add('hidden');
+                    localStorage.setItem('sonder-sidebar-hidden', 'true');
+                } else if (diff < 0 && isHidden) {
+                    // Swiped up while hidden - show sidebar
+                    sidebar.classList.remove('hidden');
+                    localStorage.setItem('sonder-sidebar-hidden', 'false');
+                }
+            }
+        });
+
+        // Also allow clicking the drag handle to toggle
+        dragHandle.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            const isHidden = sidebar.classList.contains('hidden');
+            localStorage.setItem('sonder-sidebar-hidden', isHidden);
+            if (toggleBtn) {
+                toggleBtn.classList.toggle('active', isHidden);
+            }
+        });
+    }
+
+    // Handle window resize - sync button state when switching between mobile/desktop
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            const isHidden = sidebar.classList.contains('hidden');
+            if (toggleBtn) {
+                toggleBtn.classList.toggle('active', isHidden);
+            }
+        }, 50); // Reduced delay for faster response
+    });
+}
+
+
 /* --- Map Logic --- */
 function initMap() {
     // Leaflet Map Init
@@ -736,6 +822,11 @@ document.addEventListener('DOMContentLoaded', () => {
         initTheme();
     }
 
+    // Initialize Sidebar Toggle
+    if (typeof initSidebarToggle === 'function') {
+        initSidebarToggle();
+    }
+
     // Router based on data-page or element existence
     const page = document.documentElement.getAttribute('data-page');
 
@@ -743,6 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('map')) {
         if (typeof initMap === 'function') initMap();
     }
+
 
     // Archive Page
     if (page === 'archive' || document.getElementById('archiveGrid')) {

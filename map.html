@@ -32,7 +32,13 @@
   </header>
 
   <main class="map-layout">
-    <aside class="map-sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <span class="sidebar-toggle__icon"></span>
+    </button>
+    <aside class="map-sidebar" id="mapSidebar">
+      <div class="sidebar-drag-handle" id="sidebarDragHandle">
+        <div class="sidebar-drag-handle__line"></div>
+      </div>
       <div class="map-sidebar__section">
         <h2 class="map-sidebar__title" style="font-family: 'Playfair Display', serif; font-weight: 500;">echoes of
           elsewhere</h2>
