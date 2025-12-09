@@ -916,54 +916,34 @@ function initMyEntries() {
         });
     }
 
-    // Fetch entries from Firestore by userId OR userAgent (for old entries)
+    // Fetch entries from Firestore by userId ONLY (Strict Privacy)
     if (window.db) {
-        // Query 1: Entries with matching userId
-        const userIdQuery = window.db.collection('entries')
+        window.db.collection('entries')
             .where('userId', '==', currentUserId)
-            .get();
-
-        // Query 2: Entries with matching userAgent (old entries without userId)
-        const userAgentQuery = window.db.collection('entries')
-            .where('userAgent', '==', currentUserAgent)
-            .get();
-
-        // Execute both queries
-        Promise.all([userIdQuery, userAgentQuery])
-            .then(([userIdSnapshot, userAgentSnapshot]) => {
+            .get()
+            .then(snapshot => {
                 const entries = [];
                 const entryIds = new Set();
                 const myEntryIds = JSON.parse(localStorage.getItem('sonder-my-entries') || '[]');
 
-                // Add entries from userId query
-                userIdSnapshot.forEach(doc => {
-                    if (!entryIds.has(doc.id)) {
-                        const entry = { id: doc.id, ...doc.data() };
-                        entries.push(entry);
-                        entryIds.add(doc.id);
+                snapshot.forEach(doc => {
+                    const entry = { id: doc.id, ...doc.data() };
+                    entries.push(entry);
+                    entryIds.add(doc.id);
 
-                        if (!myEntryIds.includes(doc.id)) {
-                            myEntryIds.push(doc.id);
-                        }
+                    // Sync local storage if needed (e.g. if synced from another device)
+                    if (!myEntryIds.includes(doc.id)) {
+                        myEntryIds.push(doc.id);
                     }
                 });
 
-                // Add entries from userAgent query (only if they don't have a userId)
-                userAgentSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (!entryIds.has(doc.id) && !data.userId) {
-                        const entry = { id: doc.id, ...data };
-                        entries.push(entry);
-                        entryIds.add(doc.id);
-
-                        if (!myEntryIds.includes(doc.id)) {
-                            myEntryIds.push(doc.id);
-                        }
-                    }
-                });
-
-                // Update localStorage with all found entries
+                // Update local storage with any newly discovered synced entries
                 localStorage.setItem('sonder-my-entries', JSON.stringify(myEntryIds));
+
+                // Process and render functions below...
+
+                // (Legacy userAgent fallback removed for security)
+
 
                 if (entries.length === 0) {
                     grid.style.display = 'none';
