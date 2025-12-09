@@ -32,8 +32,13 @@
 
   <main class="section">
     <div class="section__inner" style="max-width: 1000px;">
-      <h1 class="page-title">archive</h1>
-      <p class="page-subtitle">fragments of time, preserved.</p>
+      <div class="archive-header">
+        <div>
+          <h1 class="page-title" style="margin-bottom: 0.5rem;">archive</h1>
+          <p class="page-subtitle" style="margin-bottom: 0;">fragments of time, preserved.</p>
+        </div>
+        <button class="btn btn--ghost" onclick="window.location.href='my-entries.html'">view my entries</button>
+      </div>
       <div id="archiveGrid" class="archive-grid fade-up-delay-2">
         <!-- Content loaded via JS -->
       </div>
@@ -43,11 +48,14 @@
   <footer class="site-footer">
     <div class="site-footer__inner">
       <div class="site-footer__brand">SONDER</div>
+      <p class="site-footer__tagline">every stranger has a story as vivid as your own</p>
       <nav class="site-footer__nav">
-        <a href="index.html">home</a>
         <a href="map.html">map</a>
+        <a href="about.html">about</a>
+        <a href="archive.html">archive</a>
+        <a href="playlist.html">playlist</a>
       </nav>
-      <div class="site-footer__copyright">© 2025 sonder. all rights reserved.</div>
+      <p class="site-footer__copyright">© 2024 SONDER. All moments preserved.</p>
     </div>
   </footer>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>

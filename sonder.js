@@ -2,6 +2,17 @@
 
 /* SONDER - Main Application Logic */
 
+/* --- User ID Management --- */
+function getUserId() {
+    let userId = localStorage.getItem('sonder-user-id');
+    if (!userId) {
+        // Generate a unique ID
+        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('sonder-user-id', userId);
+    }
+    return userId;
+}
+
 /* --- Global UI --- */
 function initTheme() {
     const toggle = document.getElementById('themeToggle');
@@ -545,7 +556,8 @@ function initMap() {
                 lat: parseFloat(formData.get('lat')),
                 lng: parseFloat(formData.get('lng')),
                 timestamp: timestamp,
-                userAgent: navigator.userAgent
+                userAgent: navigator.userAgent,
+                userId: getUserId() // Add unique user ID
             };
 
             // Helper to remove null/undefined/empty fields
@@ -562,7 +574,13 @@ function initMap() {
             // Save to Firestore
             try {
                 if (!window.db) throw new Error("Database connection not initialized");
-                await window.db.collection('entries').add(cleanEntry(entry));
+                const docRef = await window.db.collection('entries').add(cleanEntry(entry));
+
+                // Save entry ID to localStorage for "My Entries"
+                const myEntries = JSON.parse(localStorage.getItem('sonder-my-entries') || '[]');
+                myEntries.push(docRef.id);
+                localStorage.setItem('sonder-my-entries', JSON.stringify(myEntries));
+
                 e.target.reset();
                 modal.hidden = true;
 
@@ -815,6 +833,256 @@ function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
+/* --- My Entries Logic --- */
+function initMyEntries() {
+    const grid = document.getElementById('myEntriesGrid');
+    const emptyState = document.getElementById('emptyState');
+    const totalEntriesEl = document.getElementById('totalEntries');
+    const totalCountriesEl = document.getElementById('totalCountries');
+    const totalSongsEl = document.getElementById('totalSongs');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const syncCodeDisplay = document.getElementById('syncCodeDisplay');
+    const copySyncCodeBtn = document.getElementById('copySyncCodeBtn');
+    const syncCodeInput = document.getElementById('syncCodeInput');
+    const applySyncCodeBtn = document.getElementById('applySyncCodeBtn');
+
+    if (!grid) return;
+
+    const currentUserId = getUserId();
+    const currentUserAgent = navigator.userAgent;
+
+    // Display sync code
+    if (syncCodeDisplay) {
+        syncCodeDisplay.textContent = currentUserId;
+    }
+
+    // Copy sync code
+    if (copySyncCodeBtn) {
+        copySyncCodeBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(currentUserId).then(() => {
+                copySyncCodeBtn.textContent = 'copied!';
+                setTimeout(() => {
+                    copySyncCodeBtn.textContent = 'copy code';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy code. Please copy manually: ' + currentUserId);
+            });
+        });
+    }
+
+    // Apply sync code
+    if (applySyncCodeBtn && syncCodeInput) {
+        applySyncCodeBtn.addEventListener('click', () => {
+            const newSyncCode = syncCodeInput.value.trim();
+            if (!newSyncCode) {
+                alert('Please enter a sync code');
+                return;
+            }
+            if (newSyncCode === currentUserId) {
+                alert('This is already your current sync code');
+                return;
+            }
+            if (confirm('This will replace your current sync code. Your entries will be synced with the other device. Continue?')) {
+                localStorage.setItem('sonder-user-id', newSyncCode);
+                window.location.reload();
+            }
+        });
+    }
+
+    // Sync modal handlers
+    const syncModal = document.getElementById('syncModal');
+    const syncSettingsBtn = document.getElementById('syncSettingsBtn');
+    const syncModalClose = document.getElementById('syncModalClose');
+
+    // Open sync modal
+    if (syncSettingsBtn && syncModal) {
+        syncSettingsBtn.addEventListener('click', () => {
+            syncModal.hidden = false;
+        });
+    }
+
+    // Close sync modal
+    if (syncModalClose && syncModal) {
+        syncModalClose.addEventListener('click', () => {
+            syncModal.hidden = true;
+        });
+
+        // Close on overlay click
+        syncModal.addEventListener('click', (e) => {
+            if (e.target === syncModal) {
+                syncModal.hidden = true;
+            }
+        });
+    }
+
+    // Fetch entries from Firestore by userId OR userAgent (for old entries)
+    if (window.db) {
+        // Query 1: Entries with matching userId
+        const userIdQuery = window.db.collection('entries')
+            .where('userId', '==', currentUserId)
+            .get();
+
+        // Query 2: Entries with matching userAgent (old entries without userId)
+        const userAgentQuery = window.db.collection('entries')
+            .where('userAgent', '==', currentUserAgent)
+            .get();
+
+        // Execute both queries
+        Promise.all([userIdQuery, userAgentQuery])
+            .then(([userIdSnapshot, userAgentSnapshot]) => {
+                const entries = [];
+                const entryIds = new Set();
+                const myEntryIds = JSON.parse(localStorage.getItem('sonder-my-entries') || '[]');
+
+                // Add entries from userId query
+                userIdSnapshot.forEach(doc => {
+                    if (!entryIds.has(doc.id)) {
+                        const entry = { id: doc.id, ...doc.data() };
+                        entries.push(entry);
+                        entryIds.add(doc.id);
+
+                        if (!myEntryIds.includes(doc.id)) {
+                            myEntryIds.push(doc.id);
+                        }
+                    }
+                });
+
+                // Add entries from userAgent query (only if they don't have a userId)
+                userAgentSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!entryIds.has(doc.id) && !data.userId) {
+                        const entry = { id: doc.id, ...data };
+                        entries.push(entry);
+                        entryIds.add(doc.id);
+
+                        if (!myEntryIds.includes(doc.id)) {
+                            myEntryIds.push(doc.id);
+                        }
+                    }
+                });
+
+                // Update localStorage with all found entries
+                localStorage.setItem('sonder-my-entries', JSON.stringify(myEntryIds));
+
+                if (entries.length === 0) {
+                    grid.style.display = 'none';
+                    emptyState.hidden = false;
+                    return;
+                }
+
+                // Sort by timestamp (newest first)
+                entries.sort((a, b) => {
+                    const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
+                    const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                // Calculate stats
+                const totalSongs = entries.filter(e => e.song).length;
+                const locations = new Set(entries.map(e => `${e.lat.toFixed(2)},${e.lng.toFixed(2)}`));
+
+                totalEntriesEl.textContent = entries.length;
+                totalCountriesEl.textContent = locations.size;
+                totalSongsEl.textContent = totalSongs;
+
+                // Render entries
+                grid.innerHTML = '';
+                entries.forEach((entry, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'my-entry-card';
+                    card.style.animationDelay = `${Math.min(index, 20) * 0.05}s`;
+
+                    const colorCode = getColorCode(entry.color);
+                    const dateStr = entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just now';
+
+                    // Image indicator badge styling
+                    const imgBadge = entry.image ?
+                        `<span class="my-entry-card__img-badge" title="Has image">IMG</span>` : '';
+
+                    card.innerHTML = `
+                        <div class="my-entry-card__color-indicator" style="background: ${colorCode};"></div>
+                        <div class="my-entry-card__header">
+                            <div class="my-entry-card__location">
+                                ${entry.lat.toFixed(4)}°, ${entry.lng.toFixed(4)}°
+                                ${imgBadge}
+                            </div>
+                            <div class="my-entry-card__date">${dateStr}</div>
+                        </div>
+                        <div class="my-entry-card__text">${escapeHtml(entry.text)}</div>
+                        ${entry.song ? `
+                            <a href="${escapeHtml(entry.song)}" target="_blank" class="my-entry-card__song" onclick="event.stopPropagation();">
+                                <span class="my-entry-card__song-icon">♪</span>
+                                <span>${escapeHtml(entry.songTitle || 'Linked Song')}</span>
+                            </a>
+                        ` : ''}
+                        <div class="my-entry-card__actions">
+                            <button class="my-entry-card__action-btn my-entry-card__action-btn--view">view on map</button>
+                            <button class="my-entry-card__action-btn my-entry-card__action-btn--delete" data-entry-id="${entry.id}">delete</button>
+                        </div>
+                    `;
+
+                    // View on Map handler (Smart Navigation)
+                    const viewBtn = card.querySelector('.my-entry-card__action-btn--view');
+                    if (viewBtn) {
+                        viewBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            // Save coordinates for map to fly to
+                            localStorage.setItem('sonder-nav-lat', entry.lat);
+                            localStorage.setItem('sonder-nav-lng', entry.lng);
+                            window.location.href = 'map.html';
+                        });
+                    }
+
+                    // Delete button handler
+                    const deleteBtn = card.querySelector('.my-entry-card__action-btn--delete');
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to delete this entry? This cannot be undone.')) {
+                            deleteEntry(entry.id);
+                        }
+                    });
+
+                    grid.appendChild(card);
+                });
+            })
+            .catch(err => {
+                console.error('Error loading my entries:', err);
+                grid.innerHTML = '<p class="section__text">Error loading your entries.</p>';
+            });
+    }
+
+    // Clear all entries
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all your entries? This cannot be undone.')) {
+                localStorage.removeItem('sonder-my-entries');
+                window.location.reload();
+            }
+        });
+    }
+}
+
+function deleteEntry(entryId) {
+    // Delete from Firestore server
+    if (window.db) {
+        window.db.collection('entries').doc(entryId).delete()
+            .then(() => {
+                // Remove from localStorage
+                const myEntries = JSON.parse(localStorage.getItem('sonder-my-entries') || '[]');
+                const updatedEntries = myEntries.filter(id => id !== entryId);
+                localStorage.setItem('sonder-my-entries', JSON.stringify(updatedEntries));
+
+                // Reload page
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error deleting entry:', error);
+                alert('Failed to delete entry. Please try again.');
+            });
+    }
+}
+
 /* --- Initialization --- */
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Theme globally
@@ -844,6 +1112,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Playlist Page
     if (page === 'playlist' || document.getElementById('playlistList')) {
         if (typeof initPlaylist === 'function') initPlaylist();
+    }
+
+    // My Entries Page
+    if (page === 'my-entries' || document.getElementById('myEntriesGrid')) {
+        if (typeof initMyEntries === 'function') initMyEntries();
     }
 
     // Welcome Modal for First-Time Users

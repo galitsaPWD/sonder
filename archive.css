@@ -14,6 +14,13 @@
     margin-bottom: 0.5rem;
 }
 
+.archive-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3rem;
+}
+
 .entry-card__text {
     font-size: 1.1rem;
     line-height: 1.6;
@@ -35,6 +42,20 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    .archive-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        margin-top: 2rem;
+    }
+
+    .archive-header .btn {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        width: 100%;
+    }
+
     .archive-grid {
         grid-template-columns: 1fr;
         gap: 1rem;

@@ -8,6 +8,11 @@
     margin: 0 auto 4rem;
 }
 
+.playlist-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
 /* Track Row Design (Redesigned) */
 .track-row {
     display: grid;
@@ -124,6 +129,12 @@
     .playlist-list {
         gap: 0.4rem;
         max-width: 100%;
+        margin-top: 0;
+        /* Reset margin as header handles it */
+    }
+
+    .playlist-header {
+        margin-top: 2rem;
     }
 
     .track-row {

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-page="my-entries">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SONDER · my entries</title>
+    <link rel="stylesheet" href="sonder.css" />
+    <link rel="stylesheet" href="my-entries.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+</head>
+
+<body class="sonder-body">
+    <header class="site-header">
+        <div class="site-header__logo" onclick="window.location.href='index.html'" style="cursor: pointer;">SONDER</div>
+        <nav class="site-header__nav">
+            <a href="map.html">map</a>
+            <a href="about.html">about</a>
+            <a href="archive.html">archive</a>
+            <a href="playlist.html">playlist</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+        </nav>
+    </header>
+
+    <main class="section">
+        <div class="section__inner">
+            <h1 class="page-title">my entries</h1>
+            <p class="page-subtitle">your personal collection of moments left on the map</p>
+
+            <div class="my-entries-stats">
+                <div class="stat-card">
+                    <div class="stat-card__value" id="totalEntries">0</div>
+                    <div class="stat-card__label">total entries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__value" id="totalCountries">0</div>
+                    <div class="stat-card__label">locations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__value" id="totalSongs">0</div>
+                    <div class="stat-card__label">songs shared</div>
+                </div>
+            </div>
+
+            <div class="my-entries-controls">
+                <button class="btn btn--ghost" id="syncSettingsBtn">sync devices</button>
+                <button class="btn btn--ghost" id="clearAllBtn">clear all entries</button>
+            </div>
+
+            <div class="my-entries-grid" id="myEntriesGrid">
+                <!-- Entries will be populated here -->
+            </div>
+
+            <div class="empty-state" id="emptyState" hidden>
+                <div class="empty-state__icon">📍</div>
+                <h3 class="empty-state__title">no entries yet</h3>
+                <p class="empty-state__text">start adding entries on the map to see them here</p>
+                <a href="map.html" class="btn btn--primary">go to map</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sync Settings Modal -->
+    <div class="modal" id="syncModal" hidden>
+        <div class="modal__content modal__content--small">
+            <button class="modal__close" id="syncModalClose">×</button>
+            <h2 class="modal__title">sync across devices</h2>
+            <p class="modal__description">Use this code to sync your entries across multiple devices</p>
+
+            <div class="sync-code-display">
+                <div class="sync-code-display__label">your sync code:</div>
+                <div class="sync-code-display__code" id="syncCodeDisplay">Loading...</div>
+                <button class="btn btn--ghost btn--small" id="copySyncCodeBtn">copy code</button>
+            </div>
+
+            <div class="sync-code-input">
+                <div class="sync-code-input__label">enter sync code from another device:</div>
+                <input type="text" class="sync-code-input__field" id="syncCodeInput" placeholder="paste code here">
+                <button class="btn btn--primary btn--small" id="applySyncCodeBtn">sync devices</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer__inner">
+            <div class="site-footer__brand">SONDER</div>
+            <p class="site-footer__tagline">every stranger has a story as vivid as your own</p>
+            <nav class="site-footer__nav">
+                <a href="map.html">map</a>
+                <a href="about.html">about</a>
+                <a href="archive.html">archive</a>
+                <a href="playlist.html">playlist</a>
+            </nav>
+            <p class="site-footer__copyright">© 2024 SONDER. All moments preserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFJHbgcYloTQY8JR6jAxih6ayNudqfep0",
+            authDomain: "sonder031804.firebaseapp.com",
+            projectId: "sonder031804",
+            storageBucket: "sonder031804.firebasestorage.app",
+            messagingSenderId: "996829332000",
+            appId: "1:996829332000:web:b466fdedd6b7fa904bf245",
+            measurementId: "G-E5PP6QVFK7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        window.db = firebase.firestore();
+    </script>
+    <script src="sonder.js"></script>
+</body>
+
+</html>
