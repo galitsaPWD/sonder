@@ -483,6 +483,12 @@
         /* Prevents zoom on iOS */
     }
 
+    /* Reduce button padding on mobile to ensure side-by-side fit */
+    .file-upload-btn {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
     /* Entry card preview */
     .entry-card-overlay .entry-card {
         width: 95%;
@@ -1090,5 +1096,130 @@
     /* Adjust for smaller handle */
     .map-sidebar.hidden {
         transform: translateY(calc(100% - 36px));
+    }
+}
+
+/* Camera Mirroring */
+.camera-mirror {
+    transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    will-change: transform;
+}
+
+/* Updated Camera Modal UI */
+.modal--camera {
+    background: #000 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    max-width: 600px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: none !important;
+}
+
+.modal--camera .modal__close {
+    z-index: 20;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.camera-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.camera-viewport video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    flex: 1;
+}
+
+.camera-controls {
+    position: absolute;
+    bottom: 1rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 0 1rem;
+    z-index: 10;
+}
+
+/* Shutter Button (White Circle) */
+.camera-capture-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: transparent;
+    border: 4px solid white;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.camera-capture-btn:active {
+    transform: scale(0.95);
+}
+
+.camera-capture-btn__inner {
+    width: 100%;
+    height: 100%;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.camera-capture-btn:active .camera-capture-btn__inner {
+    transform: scale(0.9);
+    opacity: 0.8;
+}
+
+/* Switch Camera Button */
+.camera-switch-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.camera-switch-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(180deg);
+}
+
+@media (max-width: 480px) {
+    .modal--camera {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+    }
+
+    .camera-viewport {
+        border-radius: 0;
     }
 }

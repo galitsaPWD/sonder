@@ -43,6 +43,7 @@
         <h2 class="map-sidebar__title" style="font-family: 'Playfair Display', serif; font-weight: 500;">echoes of
           elsewhere</h2>
         <p class="map-sidebar__text">traces left by strangers, right where you stand.</p>
+        <p class="site-footer__copyright">© 2025 SONDER. All moments preserved.</p>
         <p class="map-location-status" id="mapLocationStatus">waiting for location permission…</p>
       </div>
       <div class="map-sidebar__menu">
@@ -74,10 +75,14 @@
         <label class="entry-form__label">add a photo (optional)
           <input type="file" id="mapEntryImage" name="image" accept="image/jpeg,image/png,image/webp"
             style="display: none;" />
-          <button type="button" class="file-upload-btn" id="fileUploadBtn">
-            <span style="margin-right: 0.5rem;">
-              choose image</span>
-          </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="file-upload-btn" id="fileUploadBtn" style="flex: 1 1 0px; min-width: 0;">
+              choose image
+            </button>
+            <button type="button" class="file-upload-btn" id="cameraBtn" style="flex: 1 1 0px; min-width: 0;">
+              take photo
+            </button>
+          </div>
           <small style="color: var(--color-muted); font-size: 0.75rem; margin-top: 0.5rem; display: block;">max 5mb •
             jpg, png, or webp</small>
         </label>
@@ -129,6 +134,30 @@
       <p class="modal__hint">we’ll attach the precise coordinates from your device — nothing manual.</p>
       <p class="modal__error" id="mapEntryError" hidden></p>
       <p class="modal__hint">your entry will be part of the world, forever.</p>
+    </div>
+  </div>
+
+  <!-- Camera Capture Modal -->
+  <div class="modal-overlay" id="cameraModal" hidden>
+    <div class="modal modal--camera">
+      <button class="modal__close" id="cameraModalClose" aria-label="Close">×</button>
+      <div class="camera-viewport">
+        <video id="cameraVideo" autoplay playsinline></video>
+        <canvas id="cameraCanvas" style="display: none;"></canvas>
+
+        <div class="camera-controls">
+          <!-- Spacer for layout balance -->
+          <div style="width: 44px;"></div>
+
+          <button type="button" class="camera-capture-btn" id="capturePhotoBtn" aria-label="Take photo">
+            <div class="camera-capture-btn__inner"></div>
+          </button>
+
+          <button type="button" class="camera-switch-btn" id="switchCameraBtn" title="Switch camera">
+            ↳↰
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

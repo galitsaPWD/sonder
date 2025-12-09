@@ -359,7 +359,18 @@ function initMap() {
         const imagePreviewImg = document.getElementById('imagePreviewImg');
         const removeImageBtn = document.getElementById('removeImage');
         const fileUploadBtn = document.getElementById('fileUploadBtn');
+        const cameraBtn = document.getElementById('cameraBtn');
         let selectedImageFile = null;
+
+        // Camera modal elements
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const cameraModalClose = document.getElementById('cameraModalClose');
+        let cameraStream = null;
+        let currentFacingMode = 'user'; // 'user' for front camera, 'environment' for rear
 
         // Trigger file input when button is clicked
         if (fileUploadBtn && imageInput) {
@@ -368,6 +379,146 @@ function initMap() {
             });
         }
 
+        // Open camera modal when camera button is clicked
+        if (cameraBtn) {
+            cameraBtn.addEventListener('click', async () => {
+                try {
+                    await openCamera();
+                    cameraModal.hidden = false;
+                } catch (error) {
+                    console.error('Camera access error:', error);
+                    alert('Could not access camera. Please check permissions or try uploading an image instead.');
+                }
+            });
+        }
+
+        // Function to open camera with current facing mode
+        async function openCamera() {
+            try {
+                // Stop any existing stream
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+
+                // Request camera access
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280, max: 1920 },
+                        height: { ideal: 720, max: 1080 },
+                        frameRate: { ideal: 30, max: 60 }
+                    },
+                    audio: false
+                };
+
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraVideo.srcObject = cameraStream;
+
+                // Apply mirroring if using front camera
+                if (currentFacingMode === 'user') {
+                    cameraVideo.classList.add('camera-mirror');
+                } else {
+                    cameraVideo.classList.remove('camera-mirror');
+                }
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                throw error;
+            }
+        }
+
+        // Switch between front and rear camera
+        if (switchCameraBtn) {
+            switchCameraBtn.addEventListener('click', async () => {
+                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                try {
+                    await openCamera();
+                } catch (error) {
+                    console.error('Error switching camera:', error);
+                    alert('Could not switch camera. Your device may only have one camera.');
+                    // Switch back to previous mode
+                    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                }
+            });
+        }
+
+        // Capture photo from video stream
+        if (capturePhotoBtn) {
+            capturePhotoBtn.addEventListener('click', () => {
+                // Set canvas size to match video
+                cameraCanvas.width = cameraVideo.videoWidth;
+                cameraCanvas.height = cameraVideo.videoHeight;
+
+                const ctx = cameraCanvas.getContext('2d');
+
+                // Mirror image if using front camera
+                if (currentFacingMode === 'user') {
+                    ctx.translate(cameraVideo.videoWidth, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                // Draw current video frame to canvas
+                ctx.drawImage(cameraVideo, 0, 0);
+
+                // Reset transform for next time (good practice)
+                if (currentFacingMode === 'user') {
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                }
+
+                // Convert canvas to blob
+                cameraCanvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        alert('Failed to capture photo. Please try again.');
+                        return;
+                    }
+
+                    // Check file size (5MB limit)
+                    if (blob.size > 5 * 1024 * 1024) {
+                        alert('Photo is too large. Please try again or use a lower resolution.');
+                        return;
+                    }
+
+                    // Create file from blob
+                    const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    selectedImageFile = file;
+
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreviewImg.src = e.target.result;
+                        imagePreview.style.display = 'block';
+
+                        // Disable both buttons when photo is captured
+                        if (fileUploadBtn) {
+                            fileUploadBtn.disabled = true;
+                        }
+                        if (cameraBtn) {
+                            cameraBtn.disabled = true;
+                            cameraBtn.innerHTML = 'photo taken';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+
+                    // Close camera modal
+                    closeCamera();
+                }, 'image/jpeg', 0.9);
+            });
+        }
+
+        // Close camera modal and stop stream
+        function closeCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            cameraModal.hidden = true;
+        }
+
+        // Close button
+        if (cameraModalClose) {
+            cameraModalClose.addEventListener('click', closeCamera);
+        }
+
+        // Handle image file selection
         if (imageInput) {
             imageInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
@@ -393,10 +544,13 @@ function initMap() {
                 reader.onload = (e) => {
                     imagePreviewImg.src = e.target.result;
                     imagePreview.style.display = 'block';
-                    // Disable upload button when image is selected
+                    // Disable both buttons when image is selected
                     if (fileUploadBtn) {
                         fileUploadBtn.disabled = true;
-                        fileUploadBtn.textContent = 'image selected';
+                        fileUploadBtn.innerHTML = 'image selected';
+                    }
+                    if (cameraBtn) {
+                        cameraBtn.disabled = true;
                     }
                 };
                 reader.readAsDataURL(file);
@@ -410,10 +564,14 @@ function initMap() {
                     imagePreview.style.display = 'none';
                     imagePreviewImg.src = '';
                     selectedImageFile = null;
-                    // Re-enable upload button when image is removed
+                    // Re-enable both buttons when image is removed
                     if (fileUploadBtn) {
                         fileUploadBtn.disabled = false;
-                        fileUploadBtn.innerHTML = '<span style="margin-right: 0.5rem;">choose image</span>';
+                        fileUploadBtn.innerHTML = 'choose image';
+                    }
+                    if (cameraBtn) {
+                        cameraBtn.disabled = false;
+                        cameraBtn.innerHTML = 'take photo';
                     }
                 });
             }
@@ -1118,27 +1276,93 @@ function deleteEntry(entryId) {
 }
 
 /* --- Updates Modal Logic --- */
+const appUpdates = [
+    { date: '12.09.2025', title: 'camera capture', text: 'take photos directly from the map with live preview and smooth mirroring.' },
+    { date: '12.08.2025', title: 'image uploads', text: 'attach photos to your map entries and view them in the archive.' },
+    { date: '12.08.2025', title: 'archive navigation', text: 'click any entry card to jump directly to its location on the map.' },
+    { date: '12.07.2025', title: 'cross-device sync', text: 'access your entries from any device using your unique sync code.' },
+    { date: '12.05.2025', title: 'improved modals', text: 'better scrolling and layout across all devices.' },
+    { date: '12.04.2025', title: 'polished design', text: 'smoother animations and enhanced mobile experience.' },
+    { date: '12.01.2025', title: 'map clustering', text: 'points now group together when zoomed out.' },
+    { date: '11.28.2025', title: 'dark mode', text: 'seamless theme switching for late night browsing.' },
+    { date: '11.25.2025', title: 'location search', text: 'find any city instantly with the search bar.' },
+    { date: '11.20.2025', title: 'custom markers', text: 'unique visual language for different moment types.' },
+    { date: '11.15.2025', title: 'Spotify integration', text: 'link songs to your memories.' },
+    { date: '11.10.2025', title: 'beta launch', text: 'sonder is now live.' }
+];
+
 function initUpdatesModal() {
     const modal = document.getElementById('updatesModal');
     const btn = document.getElementById('updatesBtn');
     const badge = btn ? btn.querySelector('.updates-btn__badge') : null;
     const closeBtn = document.getElementById('closeUpdatesBtn');
     const actionBtn = document.getElementById('closeUpdatesActionBtn');
+    const updatesList = document.getElementById('updatesList');
+
+    // Render Updates List
+    if (updatesList) {
+        // Group updates by date
+        const groupedUpdates = {};
+        appUpdates.forEach(update => {
+            if (!groupedUpdates[update.date]) {
+                groupedUpdates[update.date] = [];
+            }
+            groupedUpdates[update.date].push(update);
+        });
+
+        // Render grouped updates
+        updatesList.innerHTML = Object.keys(groupedUpdates).map(date => {
+            const updates = groupedUpdates[date];
+            const updatesHtml = updates.map(u => `
+                <li style="margin-bottom: 0.25rem;">
+                    <strong>${u.title}:</strong> ${u.text}
+                </li>
+            `).join('');
+
+            return `
+                <li style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <span style="opacity: 0.6; font-size: 0.85rem; display: block; margin-bottom: 0.1rem;">${date}</span>
+                    <ul style="margin-left: 0.5rem; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 0.8rem; list-style: none; display: flex; flex-direction: column; gap: 0.3rem;">
+                        ${updatesHtml}
+                    </ul>
+                </li>
+            `;
+        }).join('');
+    }
+
+    // --- Smart Badge Logic ---
+    const totalUpdates = appUpdates.length;
+    let lastSeenCount = parseInt(localStorage.getItem('sonder-last-seen-count')) || 0;
+
+    // If migrating from old boolean system, treat as 0 seen (or 11 if we want to be nice, but 0 is safer to ensure they see the new system)
+    // Actually, if 'sonder-updates-read' is true, maybe we should assume they saw all previous? 
+    // Let's just start fresh or default to 0 to show them the new system features.
+
+    let unreadCount = totalUpdates - lastSeenCount;
+    if (unreadCount < 0) unreadCount = 0; // Prevention against negative if items removed
+
+    // Update Badge Count
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'inline-flex';
+            badge.style.alignItems = 'center';
+            badge.style.justifyContent = 'center';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
 
     if (!modal || !btn) return;
-
-    // Check if user has already read the updates
-    const hasReadUpdates = localStorage.getItem('sonder-updates-read');
-    if (hasReadUpdates && badge) {
-        badge.style.display = 'none';
-    }
 
     const open = () => {
         modal.hidden = false;
         document.body.style.overflow = 'hidden';
 
-        // Mark as read and hide badge
-        localStorage.setItem('sonder-updates-read', 'true');
+        // Mark all current updates as seen
+        localStorage.setItem('sonder-last-seen-count', totalUpdates.toString());
+
+        // Hide badge immediately
         if (badge) {
             badge.style.display = 'none';
         }
