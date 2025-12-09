@@ -851,6 +851,39 @@ function initMyEntries() {
     const currentUserId = getUserId();
     const currentUserAgent = navigator.userAgent;
 
+    // Helper: Custom Confirmation Modal
+    const showConfirmation = (title, message, onConfirm) => {
+        const modal = document.getElementById('confirmationModal');
+        if (!modal) return;
+
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        // Clean listeners to prevent stacking
+        const newOk = okBtn.cloneNode(true);
+        const newCancel = cancelBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOk, okBtn);
+        cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+        newOk.addEventListener('click', () => {
+            onConfirm();
+            modal.hidden = true;
+        });
+
+        newCancel.addEventListener('click', () => {
+            modal.hidden = true;
+        });
+
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.hidden = true;
+        };
+
+        modal.hidden = false;
+    };
+
     // Display sync code
     if (syncCodeDisplay) {
         syncCodeDisplay.textContent = currentUserId;
@@ -1018,9 +1051,9 @@ function initMyEntries() {
                     const deleteBtn = card.querySelector('.my-entry-card__action-btn--delete');
                     deleteBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        if (confirm('Are you sure you want to delete this entry? This cannot be undone.')) {
+                        showConfirmation('delete entry?', 'are you sure you want to delete this entry? this cannot be undone.', () => {
                             deleteEntry(entry.id);
-                        }
+                        });
                     });
 
                     grid.appendChild(card);
@@ -1035,10 +1068,31 @@ function initMyEntries() {
     // Clear all entries
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to clear all your entries? This cannot be undone.')) {
-                localStorage.removeItem('sonder-my-entries');
-                window.location.reload();
-            }
+            showConfirmation('clear all entries?', 'this will permanently delete all your entries from the database. cannot be undone.', () => {
+                if (!window.db) return;
+
+                // 1. Get all user entries
+                window.db.collection('entries')
+                    .where('userId', '==', currentUserId)
+                    .get()
+                    .then(snapshot => {
+                        // 2. Batch delete
+                        const batch = window.db.batch();
+                        snapshot.forEach(doc => {
+                            batch.delete(doc.ref);
+                        });
+                        return batch.commit();
+                    })
+                    .then(() => {
+                        // 3. Clear local storage & reload
+                        localStorage.removeItem('sonder-my-entries');
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        console.error('Error clearing entries:', err);
+                        alert('Error clearing entries. Please try again.');
+                    });
+            });
         });
     }
 }
@@ -1063,8 +1117,56 @@ function deleteEntry(entryId) {
     }
 }
 
+/* --- Updates Modal Logic --- */
+function initUpdatesModal() {
+    const modal = document.getElementById('updatesModal');
+    const btn = document.getElementById('updatesBtn');
+    const badge = btn ? btn.querySelector('.updates-btn__badge') : null;
+    const closeBtn = document.getElementById('closeUpdatesBtn');
+    const actionBtn = document.getElementById('closeUpdatesActionBtn');
+
+    if (!modal || !btn) return;
+
+    // Check if user has already read the updates
+    const hasReadUpdates = localStorage.getItem('sonder-updates-read');
+    if (hasReadUpdates && badge) {
+        badge.style.display = 'none';
+    }
+
+    const open = () => {
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+
+        // Mark as read and hide badge
+        localStorage.setItem('sonder-updates-read', 'true');
+        if (badge) {
+            badge.style.display = 'none';
+        }
+    };
+
+    const close = () => {
+        modal.hidden = true;
+        document.body.style.overflow = '';
+    };
+
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        open();
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (actionBtn) actionBtn.addEventListener('click', close);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) close();
+    });
+}
+
 /* --- Initialization --- */
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Updates Modal
+    initUpdatesModal();
+
     // Initialize Theme globally
     if (typeof initTheme === 'function') {
         initTheme();

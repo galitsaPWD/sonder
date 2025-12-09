@@ -73,7 +73,7 @@
         <div class="modal__content modal__content--small">
             <button class="modal__close" id="syncModalClose">×</button>
             <h2 class="modal__title">sync across devices</h2>
-            <p class="modal__description">Use this code to sync your entries across multiple devices</p>
+            <p class="modal__description">use this code to sync your entries across multiple devices</p>
 
             <div class="sync-code-display">
                 <div class="sync-code-display__label">your sync code:</div>
@@ -85,6 +85,20 @@
                 <div class="sync-code-input__label">enter sync code from another device:</div>
                 <input type="text" class="sync-code-input__field" id="syncCodeInput" placeholder="paste code here">
                 <button class="btn btn--primary btn--small" id="applySyncCodeBtn">sync devices</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmationModal" hidden>
+        <div class="modal__content modal__content--small">
+            <h2 class="modal__title" id="confirmTitle">are you sure?</h2>
+            <p class="modal__description" id="confirmMessage">this action cannot be undone.</p>
+
+            <div class="modal__actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="btn btn--ghost" id="confirmCancelBtn">cancel</button>
+                <button class="btn btn--primary" id="confirmOkBtn"
+                    style="background: #ff4757; border-color: #ff4757; color: white;">delete it</button>
             </div>
         </div>
     </div>
