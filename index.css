@@ -49,21 +49,49 @@
     font-size: 1.1rem;
     padding: 1rem 2.5rem;
     border-radius: 99px;
-    background: var(--color-text);
-    color: var(--color-bg);
-    border: none;
+    background: #1f1e1c;
+    color: #f5f1e8;
+    border: 2px solid #1f1e1c;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     opacity: 0;
     animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s forwards;
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
     min-width: 200px;
+    font-weight: 600;
+    will-change: background-color, transform;
+}
+
+[data-theme="dark"] .hero__cta {
+    background: #eae6df;
+    color: #1f1e1c;
+    border-color: #eae6df;
 }
 
 .hero__cta:hover {
-    transform: translateY(-5px) scale(1.05);
+    background: #f5f1e8;
+    color: #1f1e1c;
+    border-color: #1f1e1c;
+    transform: translateY(-5px) scale(1.15);
     box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+
 }
+
+[data-theme="dark"] .hero__cta:hover {
+    background: transparent;
+    color: #eae6df;
+    border-color: #eae6df;
+}
+
+
+
+
+
+
 
 /* Background Effects */
 .hero__map-blur {
