@@ -126,6 +126,7 @@ function initMap() {
         minZoom: 2.5,
         maxBounds: [[-90, -180], [90, 180]]
     }).setView([20, 0], 3);
+    window.map = map;
 
     // Light theme tile layer
     const lightTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -216,7 +217,7 @@ function initMap() {
 
         return L.divIcon({
             className: 'custom-marker',
-            html: `<div style="position: relative;">
+            html: `<div class="marker-entrance" style="position: relative;">
                 <div class="marker-dot" style="animation-delay: ${delay}s;"></div>
                 <div class="${bubbleClass} note-bubble--${color}" style="background: ${getColorCode(color)}; color: ${color === 'black' ? '#fff' : '#1a1a1a'};">${contentHtml}</div>
             </div>`,
@@ -227,6 +228,7 @@ function initMap() {
 
     // Firestore Live Listener
     const markers = {};
+    window.sonderMarkers = markers;
     const markerCoords = {}; // Track how many markers at each coordinate
 
     if (typeof db !== 'undefined') {
@@ -254,7 +256,7 @@ function initMap() {
 
                     const marker = L.marker([lat, lng], { icon: createIcon(data.color, data.text, data.songTitle, data.artist) })
                         .addTo(map)
-                        .on('click', () => showEntryPreview(data, marker));
+                        .on('click', () => showEntryPreview({ id: id, ...data }, marker));
                     markers[id] = marker;
                 }
             });
@@ -797,6 +799,7 @@ function showEntryPreview(data, marker) {
     let headerHtml = '';
     if (data.thumbnail) {
         headerHtml = `<div class="entry-card__art-header" style="background-image: url('${escapeHtml(data.thumbnail)}');">
+             <button class="entry-card__share btn-share" data-id="${data.id || ''}" style="background: rgba(0,0,0,0.3); color: white;" title="copy link to memory">➦</button>
              <button class="entry-card__close" style="background: rgba(0,0,0,0.3); color: white;">×</button>
         </div>`;
     } else {
@@ -817,6 +820,7 @@ function showEntryPreview(data, marker) {
     overlay.innerHTML = `
       <div class="entry-card">
         ${headerHtml}
+        ${!data.thumbnail ? `<button class="entry-card__share btn-share" data-id="${data.id || ''}" title="copy link to memory">➦</button>` : ''}
         <div class="entry-card__content" style="${contentStyle}">
             ${!data.thumbnail ? '<button class="entry-card__close">×</button>' : ''} 
             <div class="entry-card__location">${(data.lat).toFixed(4)}, ${(data.lng).toFixed(4)}</div>
@@ -929,7 +933,7 @@ function initPlaylist() {
     if (!list) return;
 
     if (window.db) {
-        window.db.collection('entries').where('song', '!=', '').limit(50).get().then(snap => {
+        window.db.collection('entries').orderBy('timestamp', 'desc').limit(100).get().then(snap => {
             if (snap.empty) {
                 list.innerHTML = '<p>No songs found yet.</p>';
                 return;
@@ -1277,15 +1281,16 @@ function deleteEntry(entryId) {
 
 /* --- Updates Modal Logic --- */
 const appUpdates = [
+    { date: '12.10.2025', title: 'shareable entries', text: 'share specific moments with a direct link that flies to the location.' },
+    { date: '12.10.2025', title: 'support the project', text: 'added a way (ko-fi) to support server costs and future development.' },
     { date: '12.09.2025', title: 'camera capture', text: 'take photos directly from the map with live preview and smooth mirroring.' },
+    { date: '12.09.2025', title: 'cross-device sync', text: 'access your entries from any device using your unique sync code.' },
     { date: '12.08.2025', title: 'image uploads', text: 'attach photos to your map entries and view them in the archive.' },
     { date: '12.08.2025', title: 'archive navigation', text: 'click any entry card to jump directly to its location on the map.' },
-    { date: '12.07.2025', title: 'cross-device sync', text: 'access your entries from any device using your unique sync code.' },
     { date: '12.05.2025', title: 'improved modals', text: 'better scrolling and layout across all devices.' },
     { date: '12.04.2025', title: 'polished design', text: 'smoother animations and enhanced mobile experience.' },
     { date: '12.01.2025', title: 'map clustering', text: 'points now group together when zoomed out.' },
     { date: '11.28.2025', title: 'dark mode', text: 'seamless theme switching for late night browsing.' },
-    { date: '11.25.2025', title: 'location search', text: 'find any city instantly with the search bar.' },
     { date: '11.20.2025', title: 'custom markers', text: 'unique visual language for different moment types.' },
     { date: '11.15.2025', title: 'Spotify integration', text: 'link songs to your memories.' },
     { date: '11.10.2025', title: 'beta launch', text: 'sonder is now live.' }
