@@ -825,9 +825,14 @@ body:not(.sonder-body--map) .btn:active {
 
 /* Empty State */
 .notifications-empty {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
   text-align: center;
   padding: 5rem 2rem 4rem 2rem;
   opacity: 0.7;
+  width: 100%;
 }
 
 .notifications-empty__icon {
