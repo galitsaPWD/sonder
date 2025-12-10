@@ -893,7 +893,7 @@ body:not(.sonder-body--map) .btn:active {
   }
 
   .notifications-btn__icon {
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
 
   .notifications-empty {
@@ -901,11 +901,12 @@ body:not(.sonder-body--map) .btn:active {
   }
 
   .notifications-empty__icon {
-    font-size: 3rem;
+    font-size: 2.5rem;
     line-height: 1.6;
     padding: 0.5rem 0;
     overflow: visible;
     display: block;
+    white-space: nowrap;
   }
 
   /* Sections - Mobile */
