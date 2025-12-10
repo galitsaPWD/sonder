@@ -238,6 +238,12 @@ function initMap() {
                 const id = change.doc.id;
 
                 if (change.type === 'added') {
+                    // Check if marker already exists to prevent duplicates
+                    if (markers[id]) {
+                        console.log(`Marker ${id} already exists, skipping duplicate creation`);
+                        return;
+                    }
+
                     let lat = data.lat;
                     let lng = data.lng;
 
@@ -258,6 +264,13 @@ function initMap() {
                         .addTo(map)
                         .on('click', () => showEntryPreview({ id: id, ...data }, marker));
                     markers[id] = marker;
+                }
+                // Handle removed entries
+                else if (change.type === 'removed') {
+                    if (markers[id]) {
+                        map.removeLayer(markers[id]);
+                        delete markers[id];
+                    }
                 }
             });
         }, error => {
@@ -743,6 +756,22 @@ function initMap() {
 
                 e.target.reset();
                 modal.hidden = true;
+
+                // Reset image upload state
+                selectedImageFile = null;
+                if (imagePreview) imagePreview.style.display = 'none';
+                if (imagePreviewImg) imagePreviewImg.src = '';
+                if (imageInput) imageInput.value = '';
+
+                // Re-enable upload buttons
+                if (fileUploadBtn) {
+                    fileUploadBtn.disabled = false;
+                    fileUploadBtn.innerHTML = 'choose image';
+                }
+                if (cameraBtn) {
+                    cameraBtn.disabled = false;
+                    cameraBtn.innerHTML = 'take photo';
+                }
 
                 // Hide manual inputs again
                 const manualInputs = document.getElementById('manualSongInputs');
