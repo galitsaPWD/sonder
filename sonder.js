@@ -1310,6 +1310,7 @@ function deleteEntry(entryId) {
 
 /* --- Updates Modal Logic --- */
 const appUpdates = [
+    { date: '12.11.2025', title: 'proximity notifications', text: 'get notified when someone posts near your memories (200m radius).' },
     { date: '12.10.2025', title: 'shareable entries', text: 'share specific moments with a direct link that flies to the location.' },
     { date: '12.10.2025', title: 'support the project', text: 'added a way (ko-fi) to support server costs and future development.' },
     { date: '12.09.2025', title: 'camera capture', text: 'take photos directly from the map with live preview and smooth mirroring.' },

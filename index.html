@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SONDER · leave something behind</title>
-  <link rel="stylesheet" href="sonder.css" />
-  <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="sonder.css?v=66666" />
+  <link rel="stylesheet" href="index.css?v=66666" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -29,6 +29,10 @@
         <a href="map.html">map</a>
         <a href="archive.html">archive</a>
         <a href="playlist.html">playlist</a>
+        <button id="notificationsBtn" class="notifications-btn" title="Notifications">
+          <span class="notifications-btn__icon">🕭</span>
+          <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+        </button>
         <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
       </nav>
     </header>
@@ -94,6 +98,26 @@
     </div>
   </div>
 
+  <!-- Notifications Modal -->
+  <div class="modal-overlay modal-overlay--notifications" id="notificationsModal" hidden>
+    <div class="modal modal--notifications">
+      <div class="modal__header">
+        <h2 class="modal__title">notifications</h2>
+        <button id="notificationsModalClose" class="modal__close">×</button>
+      </div>
+      <div class="modal__body">
+        <div id="notificationsList" class="notifications-list">
+          <!-- Notifications populated by JS -->
+        </div>
+        <div id="notificationsEmpty" class="notifications-empty" hidden>
+          <div class="notifications-empty__icon">૮(˶ㅠ︿ㅠ)ა</div>
+          <p class="notifications-empty__title">no notifications yet</p>
+          <p class="notifications-empty__text">you'll be notified when someone posts near your memories.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
@@ -109,9 +133,10 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    window.db = firebase.firestore();
   </script>
-  <script src="sonder.js"></script>
+  <script src="sonder.js?v=2"></script>
+  <script src="notifications.js?v=2"></script>
 </body>
 
 </html>

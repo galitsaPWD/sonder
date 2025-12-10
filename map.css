@@ -628,6 +628,13 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
+/* Notification Modal Override - needs to be wider */
+.modal--notifications {
+    max-width: 540px !important;
+    width: 90% !important;
+}
+
+
 .modal__close {
     position: absolute;
     top: 1rem;

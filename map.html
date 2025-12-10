@@ -7,8 +7,8 @@
   <title>SONDER · map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <link rel="stylesheet" href="sonder.css" />
-  <link rel="stylesheet" href="map.css" />
+  <link rel="stylesheet" href="sonder.css?v=88888" />
+  <link rel="stylesheet" href="map.css?v=88888" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -27,6 +27,10 @@
       <a href="about.html">about</a>
       <a href="archive.html">archive</a>
       <a href="playlist.html">playlist</a>
+      <button id="notificationsBtn" class="notifications-btn" title="Notifications">
+        <span class="notifications-btn__icon">🕭</span>
+        <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+      </button>
       <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
     </nav>
   </header>
@@ -200,6 +204,27 @@
   </script>
   <script src="sonder.js"></script>
   <script src="share.js"></script>
+  <script src="notifications.js"></script>
+
+  <!-- Notifications Modal -->
+  <div class="modal-overlay modal-overlay--notifications" id="notificationsModal" hidden>
+    <div class="modal modal--notifications">
+      <div class="modal__header">
+        <h2 class="modal__title">notifications</h2>
+        <button id="notificationsModalClose" class="modal__close">×</button>
+      </div>
+      <div class="modal__body">
+        <div id="notificationsList" class="notifications-list">
+          <!-- Notifications populated by JS -->
+        </div>
+        <div id="notificationsEmpty" class="notifications-empty" hidden>
+          <div class="notifications-empty__icon">૮(˶ㅠ︿ㅠ)ა</div>
+          <p class="notifications-empty__title">no notifications yet</p>
+          <p class="notifications-empty__text">you'll be notified when someone posts near your memories.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

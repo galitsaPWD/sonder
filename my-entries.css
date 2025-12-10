@@ -1,5 +1,5 @@
 /* Modal Styles (Moved to top to prevent nesting issues) */
-.modal {
+.modal:not(.modal--notifications) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -115,6 +115,35 @@
         transform: translateY(0);
     }
 }
+
+/* Notification Modal Overlay */
+.modal-overlay--notifications {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1;
+    text-align: left !important;
+}
+
+.modal-overlay--notifications[hidden] {
+    display: none !important;
+}
+
+.modal-overlay--notifications .modal--notifications {
+    margin: 0 auto;
+    text-align: left;
+}
+
+
 
 @media (max-width: 768px) {
     .modal__content {

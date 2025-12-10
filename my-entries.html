@@ -26,6 +26,10 @@
             <a href="about.html">about</a>
             <a href="archive.html">archive</a>
             <a href="playlist.html">playlist</a>
+            <button id="notificationsBtn" class="notifications-btn" title="Notifications">
+                <span class="notifications-btn__icon">🕭</span>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </button>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
         </nav>
     </header>
@@ -60,7 +64,7 @@
             </div>
 
             <div class="empty-state" id="emptyState" hidden>
-                <div class="empty-state__icon">📍</div>
+                <div class="empty-state__icon">(╯•﹏•╰)</div>
                 <h3 class="empty-state__title">no entries yet</h3>
                 <p class="empty-state__text">start adding entries on the map to see them here</p>
                 <a href="map.html" class="btn btn--primary">go to map</a>
@@ -136,6 +140,27 @@
         window.db = firebase.firestore();
     </script>
     <script src="sonder.js"></script>
+    <script src="notifications.js"></script>
+
+    <!-- Notifications Modal -->
+    <div class="modal-overlay modal-overlay--notifications" id="notificationsModal" hidden>
+        <div class="modal modal--notifications">
+            <div class="modal__header">
+                <h2 class="modal__title">notifications</h2>
+                <button id="notificationsModalClose" class="modal__close">×</button>
+            </div>
+            <div class="modal__body">
+                <div id="notificationsList" class="notifications-list">
+                    <!-- Notifications populated by JS -->
+                </div>
+                <div id="notificationsEmpty" class="notifications-empty" hidden>
+                    <div class="notifications-empty__icon">૮(˶ㅠ︿ㅠ)ა</div>
+                    <p class="notifications-empty__title">no notifications yet</p>
+                    <p class="notifications-empty__text">you'll be notified when someone posts near your memories.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
