@@ -552,7 +552,7 @@ body:not(.sonder-body--map) .btn:active {
   opacity: 0.8;
   transition: opacity 0.2s ease;
   color: var(--color-text);
-  transform: translateY(-1px);
+  transform: translateY(0px);
 }
 
 .notifications-btn:hover .notifications-btn__icon {
@@ -834,7 +834,8 @@ body:not(.sonder-body--map) .btn:active {
   font-size: 4rem;
   margin-bottom: 1rem;
   opacity: 0.3;
-  line-height: 1.3;
+  line-height: 1.6;
+  padding: 0.5rem 0;
   overflow: visible;
   display: block;
 }
@@ -901,7 +902,8 @@ body:not(.sonder-body--map) .btn:active {
 
   .notifications-empty__icon {
     font-size: 3rem;
-    line-height: 1.3;
+    line-height: 1.6;
+    padding: 0.5rem 0;
     overflow: visible;
     display: block;
   }
