@@ -628,10 +628,18 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-/* Notification Modal Override - needs to be wider */
+/* Notification Modal Override - needs to be wider and reset map-specific modal styles */
 .modal--notifications {
     max-width: 540px !important;
     width: 90% !important;
+    overflow: hidden !important;
+    /* Fix "scrollable" issue - let body scroll */
+    background: var(--color-bg) !important;
+    /* Fix "not solid" - make opaque */
+}
+
+[data-theme="dark"] .modal--notifications {
+    background: #1f1e1c !important;
 }
 
 
