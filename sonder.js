@@ -644,7 +644,7 @@ function initMap() {
             if (data.success) {
                 return data.data.link;
             } else {
-                throw new Error('Image upload failed');
+                throw new Error(data.data.error || 'Imgur upload failed');
             }
         }
 
@@ -714,7 +714,7 @@ function initMap() {
                     imageUrl = await uploadToImgur(selectedImageFile);
                 } catch (error) {
                     console.error('Image upload failed:', error);
-                    alert('image upload failed. entry will be saved without image.');
+                    alert('image upload failed: ' + error.message + '. entry will be saved without image.');
                 }
             }
 
