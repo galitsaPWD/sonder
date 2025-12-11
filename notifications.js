@@ -114,32 +114,48 @@
                 recentEntriesSnapshot.forEach(doc => {
                     const entry = { id: doc.id, ...doc.data() };
 
-                    // Skip own entries
-                    if (entry.userId === currentUserId) return;
+                    // Skip own entries or entries without ID
+                    if (!entry.userId || entry.userId === currentUserId) return;
 
                     // Check distance to each of user's entries
-                    myEntries.forEach(myEntry => {
-                        const distance = getDistance(
-                            entry.lat, entry.lng,
-                            myEntry.lat, myEntry.lng
-                        );
+                    for (const myEntry of myEntries) {
+                        try {
+                            // Prevent retroactive notifications:
+                            // Only notify if the stranger's entry is NEWER than my entry
+                            if (entry.timestamp && myEntry.timestamp) {
+                                const entryTime = entry.timestamp.seconds || entry.timestamp._seconds;
+                                const myTime = myEntry.timestamp.seconds || myEntry.timestamp._seconds;
+                                if (entryTime <= myTime) continue;
+                            }
 
-                        if (distance <= PROXIMITY_RADIUS) {
-                            const notifId = `${myEntry.id}_${entry.id}`;
+                            const distance = getDistance(
+                                entry.lat, entry.lng,
+                                myEntry.lat, myEntry.lng
+                            );
 
-                            // Create notification object
-                            foundNotifications.push({
-                                id: notifId,
-                                yourEntryId: myEntry.id,
-                                yourEntryLat: myEntry.lat,
-                                yourEntryLng: myEntry.lng,
-                                newEntryId: entry.id,
-                                distance: Math.round(distance),
-                                timestamp: entry.timestamp ? entry.timestamp.toDate() : new Date(),
-                                read: seenNotifications.includes(notifId)
-                            });
+                            if (distance <= PROXIMITY_RADIUS) {
+                                const notifId = `${myEntry.id}_${entry.id}`;
+
+                                // Create notification object
+                                foundNotifications.push({
+                                    id: notifId,
+                                    yourEntryId: myEntry.id,
+                                    yourEntryLat: myEntry.lat,
+                                    yourEntryLng: myEntry.lng,
+                                    newEntryId: entry.id,
+                                    distance: Math.round(distance),
+                                    timestamp: entry.timestamp ? entry.timestamp.toDate() : new Date(),
+                                    read: seenNotifications.includes(notifId)
+                                });
+
+                                // Found a match for this stranger entry - stop checking my other entries
+                                // This prevents duplicate notifications if one stranger entry is near 2 of mine
+                                break;
+                            }
+                        } catch (e) {
+                            console.warn('Error comparing entries:', e);
                         }
-                    });
+                    }
                 });
 
                 // Sort by timestamp (newest first)

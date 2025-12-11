@@ -610,8 +610,8 @@ function initMap() {
                         let width = img.width;
                         let height = img.height;
 
-                        // Resize if too large (max 1200px width)
-                        const maxWidth = 1200;
+                        // Resize if too large (max 1024px width for faster uploads)
+                        const maxWidth = 1024;
                         if (width > maxWidth) {
                             height = (height * maxWidth) / width;
                             width = maxWidth;
@@ -629,7 +629,7 @@ function initMap() {
                                 return;
                             }
                             resolve(blob);
-                        }, 'image/jpeg', 0.8);
+                        }, 'image/jpeg', 0.7);
                     };
                     img.onerror = () => {
                         reject(new Error('Failed to load image for compression'));
