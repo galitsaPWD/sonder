@@ -622,14 +622,14 @@ function initMap() {
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // Convert to blob with 80% quality
+                        // Convert to blob (Force JPEG for better compatibility with Imgur)
                         canvas.toBlob((blob) => {
                             if (!blob) {
                                 reject(new Error('Image compression failed'));
                                 return;
                             }
                             resolve(blob);
-                        }, file.type, 0.8);
+                        }, 'image/jpeg', 0.8);
                     };
                     img.onerror = () => {
                         reject(new Error('Failed to load image for compression'));
