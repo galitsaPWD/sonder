@@ -268,7 +268,7 @@
 }
 
 /* Modal Styles (Duplicated for Landing Page) */
-.modal:not(.modal-overlay--notifications) {
+.modal:not(.modal--notifications) {
     position: fixed;
     top: 0;
     left: 0;
