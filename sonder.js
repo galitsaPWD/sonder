@@ -540,9 +540,16 @@ function initMap() {
                 if (!file) return;
 
                 // Validate file type
+                // Validate file type (MIME type OR extension)
                 const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-                if (!validTypes.includes(file.type)) {
-                    alert('please use jpg, png, or webp format');
+                const validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                const extension = file.name.split('.').pop().toLowerCase();
+
+                const isValidMime = validTypes.includes(file.type);
+                const isValidExt = validExtensions.includes(extension);
+
+                if (!isValidMime && !isValidExt) {
+                    alert(`format not supported (detected: ${file.type || 'unknown'}). please use jpg, png, or webp.`);
                     imageInput.value = '';
                     return;
                 }
@@ -617,11 +624,19 @@ function initMap() {
 
                         // Convert to blob with 80% quality
                         canvas.toBlob((blob) => {
+                            if (!blob) {
+                                reject(new Error('Image compression failed'));
+                                return;
+                            }
                             resolve(blob);
                         }, file.type, 0.8);
                     };
+                    img.onerror = () => {
+                        reject(new Error('Failed to load image for compression'));
+                    };
                     img.src = e.target.result;
                 };
+                reader.onerror = () => reject(new Error('Failed to read file'));
                 reader.readAsDataURL(file);
             });
         }
