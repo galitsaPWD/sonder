@@ -1,235 +1,68 @@
-/* SONDER - Main Application Logic */
+/* SONDER - Main Application Coordinator */
 
-/* SONDER - Main Application Logic */
-
-/* --- User ID Management --- */
+/* --- Utilities --- */
 function getUserId() {
     let userId = localStorage.getItem('sonder-user-id');
     if (!userId) {
-        // Generate a unique ID
         userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('sonder-user-id', userId);
     }
     return userId;
 }
 
-/* --- Global UI --- */
-function initTheme() {
-    const toggle = document.getElementById('themeToggle');
-    if (!toggle) return;
-
-    const savedTheme = localStorage.getItem('sonder-theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-
-    toggle.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next = current === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('sonder-theme', next);
-    });
+// Used for UI glow effects and map icons
+function getColorCode(name) {
+    const colors = {
+        'pink': '#ff9a9e',
+        'yellow': '#f6e58d',
+        'blue': '#74b9ff',
+        'green': '#55efc4',
+        'purple': '#a29bfe',
+        'orange': '#fab1a0',
+        'black': '#1a1a1a'
+    };
+    return colors[name] || '#1a1a1a';
 }
 
-/* --- Sidebar Toggle --- */
-function initSidebarToggle() {
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('mapSidebar');
-    const dragHandle = document.getElementById('sidebarDragHandle');
-
-    if (!sidebar) return;
-
-    // Check saved state
-    const savedState = localStorage.getItem('sonder-sidebar-hidden');
-    if (savedState === 'true') {
-        sidebar.classList.add('hidden');
-        if (toggleBtn) toggleBtn.classList.add('active');
-    }
-
-    // Desktop toggle button
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('hidden');
-            toggleBtn.classList.toggle('active');
-
-            // Save state
-            const isHidden = sidebar.classList.contains('hidden');
-            localStorage.setItem('sonder-sidebar-hidden', isHidden);
-        });
-    }
-
-    // Mobile drag/swipe functionality
-    if (dragHandle) {
-        let startY = 0;
-        let isDragging = false;
-        const threshold = 30; // pixels to swipe before toggling
-
-        dragHandle.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            isDragging = true;
-        }, { passive: true });
-
-        dragHandle.addEventListener('touchend', (e) => {
-            if (!isDragging) return;
-
-            const endY = e.changedTouches[0].clientY;
-            const diff = endY - startY;
-            isDragging = false;
-
-            const isHidden = sidebar.classList.contains('hidden');
-
-            // Toggle if swiped enough
-            if (Math.abs(diff) > threshold) {
-                if (diff > 0 && !isHidden) {
-                    // Swiped down while visible - hide sidebar
-                    sidebar.classList.add('hidden');
-                    localStorage.setItem('sonder-sidebar-hidden', 'true');
-                } else if (diff < 0 && isHidden) {
-                    // Swiped up while hidden - show sidebar
-                    sidebar.classList.remove('hidden');
-                    localStorage.setItem('sonder-sidebar-hidden', 'false');
-                }
-            }
-        });
-
-        // Also allow clicking the drag handle to toggle
-        dragHandle.addEventListener('click', () => {
-            sidebar.classList.toggle('hidden');
-            const isHidden = sidebar.classList.contains('hidden');
-            localStorage.setItem('sonder-sidebar-hidden', isHidden);
-            if (toggleBtn) {
-                toggleBtn.classList.toggle('active', isHidden);
-            }
-        });
-    }
-
-    // Handle window resize - sync button state when switching between mobile/desktop
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            const isHidden = sidebar.classList.contains('hidden');
-            if (toggleBtn) {
-                toggleBtn.classList.toggle('active', isHidden);
-            }
-        }, 50); // Reduced delay for faster response
-    });
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
+/* --- Initialization --- */
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Init Theme & UI
+    if (typeof initTheme === 'function') initTheme();
+    if (typeof initSidebarToggle === 'function') initSidebarToggle();
 
-/* --- Map Logic --- */
-function initMap() {
-    // Leaflet Map Init
-    const mapElement = document.getElementById('map');
-    if (!mapElement) return;
-
-    const map = L.map('map', {
-        zoomControl: false,
-        minZoom: 2.5,
-        maxBounds: [[-90, -180], [90, 180]]
-    }).setView([20, 0], 3);
-    window.map = map;
-
-    // Light theme tile layer
-    const lightTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-    });
-
-    // Dark theme tile layer (using dark_nolabels + labels_only for white labels)
-    const darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-    });
-
-    const darkLabelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 19,
-        pane: 'shadowPane' // Render labels on top
-    });
-
-    // Function to switch tile layers based on theme
-    const updateMapTheme = () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        if (currentTheme === 'dark') {
-            map.removeLayer(lightTileLayer);
-            darkTileLayer.addTo(map);
-            darkLabelsLayer.addTo(map);
-        } else {
-            map.removeLayer(darkTileLayer);
-            map.removeLayer(darkLabelsLayer);
-            lightTileLayer.addTo(map);
+    // 2. Init Map
+    if (typeof initMapCanvas === 'function') {
+        const map = initMapCanvas(); // Returns L.map instance
+        if (map) {
+            checkNavigationPending(map);
+            initFirestoreListeners(map);
+            initMapInteractions(map);
         }
-    };
-
-    // Initialize with correct theme
-    updateMapTheme();
-
-    // Listen for theme changes
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            setTimeout(updateMapTheme, 50); // Small delay to let theme attribute update
-        });
     }
 
-    // Check if navigating from archive with specific coordinates
-    const navLat = localStorage.getItem('sonder-nav-lat');
-    const navLng = localStorage.getItem('sonder-nav-lng');
-    if (navLat && navLng) {
-        setTimeout(() => {
-            map.flyTo([parseFloat(navLat), parseFloat(navLng)], 17, {
-                duration: 4,
-                easeLinearity: 1
-            });
-        }, 500);
-        localStorage.removeItem('sonder-nav-lat');
-        localStorage.removeItem('sonder-nav-lng');
-    }
+    // 3. Init Page Specifics
+    if (typeof initPlaylist === 'function') initPlaylist();
+    if (typeof initArchive === 'function') initArchive();
+    if (typeof initMyEntries === 'function') initMyEntries();
 
-    // Custom Icon
-    const createIcon = (color = 'black', text = '...', songTitle = '', artist = '') => {
-        const delay = Math.random() * -4; // random start time
-        let contentHtml = '';
-        let bubbleClass = 'note-bubble';
+    // Notification modal
+    if (typeof initUpdatesModal === 'function') initUpdatesModal();
+    if (typeof initNotifications === 'function') initNotifications();
+});
 
-        const previewText = text.length > 20 ? text.substring(0, 20) + '...' : text;
 
-        // Show song info if we have either title or artist
-        if (songTitle || artist) {
-            let songInfo = '';
-            if (songTitle && artist) {
-                songInfo = `${escapeHtml(songTitle)} - ${escapeHtml(artist)}`;
-            } else if (songTitle) {
-                songInfo = escapeHtml(songTitle);
-            } else {
-                songInfo = escapeHtml(artist);
-            }
+/* --- Map & Data Logic --- */
 
-            contentHtml = `
-                <div class="bubble-song">${songInfo}</div>
-                <div class="bubble-text">${escapeHtml(previewText)}</div>
-            `;
-            bubbleClass += ' has-song';
-        } else {
-            contentHtml = `<div class="bubble-text">${escapeHtml(previewText)}</div>`;
-        }
-
-        return L.divIcon({
-            className: 'custom-marker',
-            html: `<div class="marker-entrance" style="position: relative;">
-                <div class="marker-dot" style="animation-delay: ${delay}s;"></div>
-                <div class="${bubbleClass} note-bubble--${color}" style="background: ${getColorCode(color)}; color: ${color === 'black' ? '#fff' : '#1a1a1a'};">${contentHtml}</div>
-            </div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
-        });
-    };
-
-    // Firestore Live Listener
-    const markers = {};
-    window.sonderMarkers = markers;
-    const markerCoords = {}; // Track how many markers at each coordinate
+function initFirestoreListeners(map) {
+    const markers = window.sonderMarkers || {};
+    const markerCoords = {};
 
     if (typeof db !== 'undefined') {
         db.collection('entries').onSnapshot(snapshot => {
@@ -238,34 +71,32 @@ function initMap() {
                 const id = change.doc.id;
 
                 if (change.type === 'added') {
-                    // Check if marker already exists to prevent duplicates
-                    if (markers[id]) {
-                        console.log(`Marker ${id} already exists, skipping duplicate creation`);
-                        return;
-                    }
+                    if (markers[id]) return;
 
                     let lat = data.lat;
                     let lng = data.lng;
 
-                    // Create coordinate key and add small offset if duplicate location
+                    // Offset logic for duplicates
                     const coordKey = `${lat.toFixed(5)},${lng.toFixed(5)}`;
                     markerCoords[coordKey] = (markerCoords[coordKey] || 0) + 1;
 
                     if (markerCoords[coordKey] > 1) {
-                        // Offset in a circle pattern
                         const offsetIndex = markerCoords[coordKey] - 1;
-                        const angle = (offsetIndex * 60) * (Math.PI / 180); // 60 degrees apart
-                        const offsetDistance = 0.00008; // Very small offset (~8 meters)
+                        const angle = (offsetIndex * 60) * (Math.PI / 180);
+                        const offsetDistance = 0.00008;
                         lat += Math.cos(angle) * offsetDistance;
                         lng += Math.sin(angle) * offsetDistance;
                     }
 
-                    const marker = L.marker([lat, lng], { icon: createIcon(data.color, data.text, data.songTitle, data.artist) })
+                    // Uses global createMarkerIcon from map-logic.js
+                    const marker = L.marker([lat, lng], {
+                        icon: createMarkerIcon(data.color, data.text, data.songTitle, data.artist)
+                    })
                         .addTo(map)
                         .on('click', () => showEntryPreview({ id: id, ...data }, marker));
+
                     markers[id] = marker;
                 }
-                // Handle removed entries
                 else if (change.type === 'removed') {
                     if (markers[id]) {
                         map.removeLayer(markers[id]);
@@ -277,27 +108,67 @@ function initMap() {
             console.error("Error fetching markers:", error);
         });
     }
+}
 
-    // UI Interactions
+function initMapInteractions(map) {
     const modal = document.getElementById('mapEntryModal');
     const addBtn = document.getElementById('mapAddEntryBtn');
-    const closeModal = document.getElementById('mapEntryModalClose');
     const form = document.getElementById('mapEntryForm');
     const locateBtn = document.getElementById('mapLocateBtn');
     const status = document.getElementById('mapLocationStatus');
     let userLocation = null;
 
-    // Colors
+    // Color Picker UI
     const colorBtns = document.querySelectorAll('.color-option');
+
+    // Helper to update glow
+    const updateInputGlow = (color) => {
+        const entryText = document.getElementById('mapEntryText');
+        if (!entryText) return;
+
+        const newColor = color === 'black' ? 'var(--color-accent)' : getColorCode(color);
+        entryText.style.setProperty('--active-color', newColor);
+        entryText.style.borderColor = newColor;
+
+        // Reset box shadow
+        entryText.style.boxShadow = 'none';
+        void entryText.offsetWidth; // Force reflow
+
+        if (color === 'black') {
+            // Adaptive glow: Black in light mode, White in dark mode (matches text color)
+            entryText.style.boxShadow = '0 0 15px 1px var(--color-text)';
+        } else {
+            entryText.style.boxShadow = `0 0 15px 1px color-mix(in srgb, ${newColor}, transparent 60%)`;
+        }
+    };
+
     colorBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            colorBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('mapEntryColor').value = btn.dataset.color;
+            colorBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            // Set Hidden Input
+            const colorInput = document.getElementById('mapEntryColor');
+            if (colorInput) colorInput.value = btn.dataset.color;
+
+            // Trigger Glow
+            updateInputGlow(btn.dataset.color);
         });
     });
-    if (colorBtns.length > 0) colorBtns[0].click();
 
+    // Ensure default selection visual matches logic
+    if (colorBtns.length > 0) {
+        // Check if any is already selected (from HTML), if not select first
+        let selectedBtn = document.querySelector('.color-option.selected');
+        if (!selectedBtn) {
+            selectedBtn = colorBtns[0];
+            selectedBtn.classList.add('selected');
+            const colorInput = document.getElementById('mapEntryColor');
+            if (colorInput) colorInput.value = selectedBtn.dataset.color;
+        }
+        // Apply initial glow
+        updateInputGlow(selectedBtn.dataset.color);
+    }
 
     // Geolocation
     if (locateBtn) {
@@ -305,16 +176,13 @@ function initMap() {
             status.innerText = "locating you...";
             status.removeAttribute('data-error');
             if (!navigator.geolocation) {
-                status.innerText = "geolocation not supported.";
+                status.innerText = "not supported.";
                 status.setAttribute('data-error', 'true');
                 return;
             }
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
-                    userLocation = {
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude
-                    };
+                    userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     status.innerText = "location found.";
                     status.removeAttribute('data-error');
                     if (addBtn) addBtn.disabled = false;
@@ -322,500 +190,280 @@ function initMap() {
                 },
                 (err) => {
                     console.error(err);
-                    status.innerText = "could not find you.";
+                    status.innerText = "location not found.";
                     status.setAttribute('data-error', 'true');
                 }
             );
         });
     }
-
-    // Modal Handling
+    // Open Modal Handlers
     if (addBtn) {
         addBtn.addEventListener('click', () => {
-            const openModal = (lat, lng) => {
-                const form = document.getElementById('mapEntryForm');
+            const open = (lat, lng) => {
                 if (form) form.reset();
-                const latInput = document.getElementById('mapEntryLat');
-                const lngInput = document.getElementById('mapEntryLng');
-                if (latInput) latInput.value = lat;
-                if (lngInput) lngInput.value = lng;
+                // Reset Image Preview
+                const preview = document.getElementById('imagePreview');
+                if (preview) preview.style.display = 'none';
+                window.selectedImageFile = null;
+
+                document.getElementById('mapEntryLat').value = lat;
+                document.getElementById('mapEntryLng').value = lng;
                 modal.hidden = false;
             };
 
             if (userLocation) {
-                openModal(userLocation.lat, userLocation.lng);
+                open(userLocation.lat, userLocation.lng);
             } else {
-                // Try locating
-                if (status) status.innerText = "locating for entry...";
-                if (!navigator.geolocation) {
-                    alert("Geolocation not supported. Using default location.");
-                    openModal(20, 0);
-                    return;
-                }
+                if (status) status.innerText = "locating...";
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                        if (status) status.innerText = "location found.";
+                        if (status) status.innerText = "found.";
                         map.flyTo([userLocation.lat, userLocation.lng], 13);
-                        openModal(userLocation.lat, userLocation.lng);
+                        open(userLocation.lat, userLocation.lng);
                     },
                     (err) => {
                         console.error(err);
-                        alert("Could not get location. You can still add an entry (using default location).");
-                        openModal(20, 0); // Default or center of map
+                        alert("Could not get location. Using map center.");
+                        open(20, 0);
                     }
                 );
             }
         });
+    }
 
-        // Image upload handling
-        const imageInput = document.getElementById('mapEntryImage');
-        const imagePreview = document.getElementById('imagePreview');
-        const imagePreviewImg = document.getElementById('imagePreviewImg');
-        const removeImageBtn = document.getElementById('removeImage');
-        const fileUploadBtn = document.getElementById('fileUploadBtn');
-        const cameraBtn = document.getElementById('cameraBtn');
-        let selectedImageFile = null;
+    // Modal Close
+    const closeBtn = document.getElementById('mapEntryModalClose');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.hidden = true;
+        });
+    }
 
-        // Camera modal elements
-        const cameraModal = document.getElementById('cameraModal');
-        const cameraVideo = document.getElementById('cameraVideo');
-        const cameraCanvas = document.getElementById('cameraCanvas');
-        const capturePhotoBtn = document.getElementById('capturePhotoBtn');
-        const switchCameraBtn = document.getElementById('switchCameraBtn');
-        const cameraModalClose = document.getElementById('cameraModalClose');
-        let cameraStream = null;
-        let currentFacingMode = 'user'; // 'user' for front camera, 'environment' for rear
+    // Camera & Image Logic Integration
+    initCameraIntegration();
 
-        // Trigger file input when button is clicked
-        if (fileUploadBtn && imageInput) {
-            fileUploadBtn.addEventListener('click', () => {
-                imageInput.click();
-            });
-        }
-
-        // Open camera modal when camera button is clicked
-        if (cameraBtn) {
-            cameraBtn.addEventListener('click', async () => {
-                try {
-                    await openCamera();
-                    cameraModal.hidden = false;
-                } catch (error) {
-                    console.error('Camera access error:', error);
-                    alert('Could not access camera. Please check permissions or try uploading an image instead.');
-                }
-            });
-        }
-
-        // Function to open camera with current facing mode
-        async function openCamera() {
-            try {
-                // Stop any existing stream
-                if (cameraStream) {
-                    cameraStream.getTracks().forEach(track => track.stop());
-                }
-
-                // Request camera access
-                const constraints = {
-                    video: {
-                        facingMode: currentFacingMode,
-                        width: { ideal: 1280, max: 1920 },
-                        height: { ideal: 720, max: 1080 },
-                        frameRate: { ideal: 30, max: 60 }
-                    },
-                    audio: false
-                };
-
-                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-                cameraVideo.srcObject = cameraStream;
-
-                // Apply mirroring if using front camera
-                if (currentFacingMode === 'user') {
-                    cameraVideo.classList.add('camera-mirror');
-                } else {
-                    cameraVideo.classList.remove('camera-mirror');
-                }
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                throw error;
-            }
-        }
-
-        // Switch between front and rear camera
-        if (switchCameraBtn) {
-            switchCameraBtn.addEventListener('click', async () => {
-                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-                try {
-                    await openCamera();
-                } catch (error) {
-                    console.error('Error switching camera:', error);
-                    alert('Could not switch camera. Your device may only have one camera.');
-                    // Switch back to previous mode
-                    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-                }
-            });
-        }
-
-        // Capture photo from video stream
-        if (capturePhotoBtn) {
-            capturePhotoBtn.addEventListener('click', () => {
-                // Set canvas size to match video
-                cameraCanvas.width = cameraVideo.videoWidth;
-                cameraCanvas.height = cameraVideo.videoHeight;
-
-                const ctx = cameraCanvas.getContext('2d');
-
-                // Mirror image if using front camera
-                if (currentFacingMode === 'user') {
-                    ctx.translate(cameraVideo.videoWidth, 0);
-                    ctx.scale(-1, 1);
-                }
-
-                // Draw current video frame to canvas
-                ctx.drawImage(cameraVideo, 0, 0);
-
-                // Reset transform for next time (good practice)
-                if (currentFacingMode === 'user') {
-                    ctx.setTransform(1, 0, 0, 1, 0, 0);
-                }
-
-                // Convert canvas to blob
-                cameraCanvas.toBlob(async (blob) => {
-                    if (!blob) {
-                        alert('Failed to capture photo. Please try again.');
-                        return;
-                    }
-
-                    // Check file size (5MB limit)
-                    if (blob.size > 5 * 1024 * 1024) {
-                        alert('Photo is too large. Please try again or use a lower resolution.');
-                        return;
-                    }
-
-                    // Create file from blob
-                    const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-                    selectedImageFile = file;
-
-                    // Show preview
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        imagePreviewImg.src = e.target.result;
-                        imagePreview.style.display = 'block';
-
-                        // Disable both buttons when photo is captured
-                        if (fileUploadBtn) {
-                            fileUploadBtn.disabled = true;
-                        }
-                        if (cameraBtn) {
-                            cameraBtn.disabled = true;
-                            cameraBtn.innerHTML = 'photo taken';
-                        }
-                    };
-                    reader.readAsDataURL(file);
-
-                    // Close camera modal
-                    closeCamera();
-                }, 'image/jpeg', 0.9);
-            });
-        }
-
-        // Close camera modal and stop stream
-        function closeCamera() {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            cameraModal.hidden = true;
-        }
-
-        // Close button
-        if (cameraModalClose) {
-            cameraModalClose.addEventListener('click', closeCamera);
-        }
-
-        // Handle image file selection
-        if (imageInput) {
-            imageInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                // Validate file type
-                // Validate file type (MIME type OR extension)
-                const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-                const validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-                const extension = file.name.split('.').pop().toLowerCase();
-
-                const isValidMime = validTypes.includes(file.type);
-                const isValidExt = validExtensions.includes(extension);
-
-                if (!isValidMime && !isValidExt) {
-                    alert(`format not supported (detected: ${file.type || 'unknown'}). please use jpg, png, or webp.`);
-                    imageInput.value = '';
-                    return;
-                }
-
-                // Validate file size (5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('image must be under 5mb');
-                    imageInput.value = '';
-                    return;
-                }
-
-                // Show preview
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreviewImg.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                    // Disable both buttons when image is selected
-                    if (fileUploadBtn) {
-                        fileUploadBtn.disabled = true;
-                        fileUploadBtn.innerHTML = 'image selected';
-                    }
-                    if (cameraBtn) {
-                        cameraBtn.disabled = true;
-                    }
-                };
-                reader.readAsDataURL(file);
-
-                selectedImageFile = file;
-            });
-
-            if (removeImageBtn) {
-                removeImageBtn.addEventListener('click', () => {
-                    imageInput.value = '';
-                    imagePreview.style.display = 'none';
-                    imagePreviewImg.src = '';
-                    selectedImageFile = null;
-                    // Re-enable both buttons when image is removed
-                    if (fileUploadBtn) {
-                        fileUploadBtn.disabled = false;
-                        fileUploadBtn.innerHTML = 'choose image';
-                    }
-                    if (cameraBtn) {
-                        cameraBtn.disabled = false;
-                        cameraBtn.innerHTML = 'take photo';
-                    }
-                });
-            }
-        }
-
-        // Helper function to compress image
-        async function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-
-                        // Resize if too large (max 1024px width for faster uploads)
-                        const maxWidth = 1024;
-                        if (width > maxWidth) {
-                            height = (height * maxWidth) / width;
-                            width = maxWidth;
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        // Convert to blob (Force JPEG for better compatibility with Imgur)
-                        canvas.toBlob((blob) => {
-                            if (!blob) {
-                                reject(new Error('Image compression failed'));
-                                return;
-                            }
-                            resolve(blob);
-                        }, 'image/jpeg', 0.7);
-                    };
-                    img.onerror = () => {
-                        reject(new Error('Failed to load image for compression'));
-                    };
-                    img.src = e.target.result;
-                };
-                reader.onerror = () => reject(new Error('Failed to read file'));
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // Helper function to upload image to Imgur (free)
-        async function uploadToImgur(imageFile) {
-            const compressedImage = await compressImage(imageFile);
-            const formData = new FormData();
-            formData.append('image', compressedImage);
-
-            const response = await fetch('https://api.imgur.com/3/image', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Client-ID 546c25a59c58ad7' // Public Imgur client ID
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                return data.data.link;
-            } else {
-                throw new Error(data.data.error || 'Imgur upload failed');
-            }
-        }
-
-        // Submit Handler with Auto-Fetch
-        const form = document.getElementById('mapEntryForm');
+    // Form Submission
+    if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Show Loading
+            // Loading UI
             const overlay = document.getElementById('loadingOverlay');
-            if (overlay) overlay.style.display = 'flex';
+            let overlayTimeout = setTimeout(() => { if (overlay) overlay.style.display = 'flex'; }, 500);
+
+            const hideLoading = () => {
+                clearTimeout(overlayTimeout);
+                if (overlay) overlay.style.display = 'none';
+            };
 
             const formData = new FormData(e.target);
             let songUrl = formData.get('song');
             if (songUrl && !songUrl.match(/^https?:\/\//i)) {
                 songUrl = 'https://' + songUrl;
-                formData.set('song', songUrl); // Update formData with corrected URL
+                formData.set('song', songUrl);
             }
 
-            // Auto-Fetch Logic
-            // Only try to fetch if we don't already have values (user didn't manually enter them)
+            // --- Metadata Fetching Logic ---
             const currentTitle = formData.get('songTitle');
             const manualTitle = formData.get('manualTitle');
-            const currentArtist = formData.get('artist');
-            const manualArtist = formData.get('manualArtist');
 
             if (songUrl && songUrl.includes('spotify.com') && (!currentTitle && !manualTitle)) {
                 try {
                     const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(songUrl)}`;
                     const response = await fetch(oembedUrl);
-
-                    if (!response.ok) throw new Error('Network response was not ok');
-
+                    if (!response.ok) throw new Error('Network error');
                     const data = await response.json();
 
-                    if (data.title) {
-                        formData.set('songTitle', data.title);
-                    }
-                    if (data.author_name) {
-                        formData.set('artist', data.author_name);
-                    }
-                    if (data.thumbnail_url) {
-                        formData.set('thumbnail', data.thumbnail_url);
-                    }
+                    if (data.title) formData.set('songTitle', data.title);
+                    if (data.author_name) formData.set('artist', data.author_name);
+                    if (data.thumbnail_url) formData.set('thumbnail', data.thumbnail_url);
                 } catch (err) {
                     console.warn('Metadata fetch failed:', err);
-
-                    // Fallback: Show manual inputs and stop submission
                     const manualInputs = document.getElementById('manualSongInputs');
                     if (manualInputs) manualInputs.style.display = 'block';
-
-                    if (overlay) overlay.style.display = 'none';
-                    return; // Stop here, let user fill inputs and submit again
+                    hideLoading();
+                    return; // Stop and let user fill manual inputs
                 }
             }
 
-            const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-            // Get song info from hidden fields OR manual inputs
             const finalSongTitle = formData.get('songTitle') || formData.get('manualTitle');
             const finalArtist = formData.get('artist') || formData.get('manualArtist');
 
-            // Upload image to Imgur if selected
+            // Image Upload using camera-utils.js
             let imageUrl = null;
-            if (selectedImageFile) {
+            if (window.selectedImageFile) {
                 try {
-                    imageUrl = await uploadToImgur(selectedImageFile);
+                    imageUrl = await uploadToImgur(window.selectedImageFile);
                 } catch (error) {
                     console.error('Image upload failed:', error);
-                    alert('image upload failed: ' + error.message + '. entry will be saved without image.');
+                    alert('Image upload failed. Saving text only.');
                 }
             }
 
+            // Save to Firebase
+            const timestamp = firebase.firestore.FieldValue.serverTimestamp();
             const entry = {
                 text: formData.get('text'),
                 song: songUrl,
                 songTitle: finalSongTitle,
                 artist: finalArtist,
                 thumbnail: formData.get('thumbnail'),
-                image: imageUrl, // Add uploaded image URL
+                image: imageUrl,
                 color: formData.get('color'),
                 lat: parseFloat(formData.get('lat')),
                 lng: parseFloat(formData.get('lng')),
                 timestamp: timestamp,
                 userAgent: navigator.userAgent,
-                userId: getUserId() // Add unique user ID
+                userId: getUserId()
             };
 
-            // Helper to remove null/undefined/empty fields
-            const cleanEntry = (obj) => {
-                const newObj = {};
-                Object.keys(obj).forEach(key => {
-                    if (obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
-                        newObj[key] = obj[key];
-                    }
-                });
-                return newObj;
-            };
-
-            // Save to Firestore
             try {
-                if (!window.db) throw new Error("Database connection not initialized");
-                const docRef = await window.db.collection('entries').add(cleanEntry(entry));
-
-                // Save entry ID to localStorage for "My Entries"
-                const myEntries = JSON.parse(localStorage.getItem('sonder-my-entries') || '[]');
-                myEntries.push(docRef.id);
-                localStorage.setItem('sonder-my-entries', JSON.stringify(myEntries));
-
-                e.target.reset();
+                await db.collection('entries').add(entry);
+                form.reset();
                 modal.hidden = true;
+                window.selectedImageFile = null;
+                const preview = document.getElementById('imagePreview');
+                if (preview) preview.style.display = 'none';
 
-                // Reset image upload state
-                selectedImageFile = null;
-                if (imagePreview) imagePreview.style.display = 'none';
-                if (imagePreviewImg) imagePreviewImg.src = '';
-                if (imageInput) imageInput.value = '';
-
-                // Re-enable upload buttons
-                if (fileUploadBtn) {
-                    fileUploadBtn.disabled = false;
-                    fileUploadBtn.innerHTML = 'choose image';
-                }
-                if (cameraBtn) {
-                    cameraBtn.disabled = false;
-                    cameraBtn.innerHTML = 'take photo';
-                }
-
-                // Hide manual inputs again
-                const manualInputs = document.getElementById('manualSongInputs');
-                if (manualInputs) manualInputs.style.display = 'none';
-
-                // Show success feedback
-                const locStatus = document.getElementById('mapLocationStatus');
-                if (locStatus) {
-                    locStatus.innerText = "entry dropped.";
-                    setTimeout(() => { if (locStatus.innerText === 'entry dropped.') locStatus.innerText = 'location found.'; }, 3000);
-                }
+                // Success Message
+                const statusMsg = document.createElement('div');
+                statusMsg.className = 'status-message';
+                statusMsg.textContent = 'entry dropped into the world.';
+                document.body.appendChild(statusMsg);
+                setTimeout(() => statusMsg.remove(), 3000);
 
             } catch (error) {
                 console.error("Error adding document: ", error);
-                alert("Error adding entry: " + error.message);
+                alert("Error saving entry: " + error.message);
             } finally {
-                if (overlay) overlay.style.display = 'none';
+                hideLoading();
             }
-        });
-    }
-
-    if (closeModal) {
-        closeModal.addEventListener('click', () => {
-            modal.hidden = true;
         });
     }
 }
 
-function showEntryPreview(data, marker) {
+
+function initCameraIntegration() {
+    const fileUploadBtn = document.getElementById('fileUploadBtn');
+    const imageInput = document.getElementById('mapEntryImage');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewImg = document.getElementById('imagePreviewImg');
+    const removeImageBtn = document.getElementById('removeImage');
+
+    // File Input Trigger
+    if (fileUploadBtn && imageInput) {
+        fileUploadBtn.addEventListener('click', () => imageInput.click());
+    }
+
+    // Image Detection
+    if (imageInput) {
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const validation = validateImage(file); // from camera-utils
+
+            if (!validation.valid) {
+                alert(validation.message);
+                imageInput.value = '';
+                return;
+            }
+
+            // Preview
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                imagePreviewImg.src = ev.target.result;
+                imagePreview.style.display = 'block';
+                // Lock buttons
+                if (fileUploadBtn) { fileUploadBtn.disabled = true; fileUploadBtn.innerHTML = 'image selected'; }
+                if (cameraBtn) cameraBtn.disabled = true;
+            };
+            reader.readAsDataURL(file);
+            window.selectedImageFile = file;
+        });
+    }
+
+    // Remove Image
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', () => {
+            if (imageInput) imageInput.value = '';
+            if (imagePreview) imagePreview.style.display = 'none';
+            if (imagePreviewImg) imagePreviewImg.src = '';
+            window.selectedImageFile = null;
+
+            if (fileUploadBtn) { fileUploadBtn.disabled = false; fileUploadBtn.innerHTML = 'choose image'; }
+            if (cameraBtn) { cameraBtn.disabled = false; cameraBtn.innerHTML = 'take photo'; }
+        });
+    }
+
+    // Camera Modal
+    const cameraModal = document.getElementById('cameraModal');
+    if (cameraBtn) {
+        cameraBtn.addEventListener('click', async () => {
+            try {
+                await openCamera(); // camera-utils.js
+                cameraModal.hidden = false;
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    }
+
+    // Camera UI inside modal
+    const captureBtn = document.getElementById('capturePhotoBtn');
+    const switchBtn = document.getElementById('switchCameraBtn');
+    const closeCamBtn = document.getElementById('cameraModalClose');
+    const video = document.getElementById('cameraVideo');
+
+    if (switchBtn) {
+        switchBtn.addEventListener('click', async () => {
+            // Toggle global logic (re-call openCamera with swapped mode)
+            // We'll store/toggle mode in a simple variable here or rely on camera-utils if it exported state?
+            // camera-utils exported 'openCamera' accepts mode.
+            // Let's toggle locally.
+            window.currentCameraMode = window.currentCameraMode === 'environment' ? 'user' : 'environment';
+            try {
+                await openCamera(window.currentCameraMode);
+            } catch (e) {
+                console.error(e);
+                // Revert
+                window.currentCameraMode = window.currentCameraMode === 'environment' ? 'user' : 'environment';
+                await openCamera(window.currentCameraMode);
+            }
+        });
+    }
+
+    if (captureBtn && video) {
+        captureBtn.addEventListener('click', async () => {
+            try {
+                const blob = await capturePhoto(video); // camera-utils.js
+                const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    imagePreviewImg.src = ev.target.result;
+                    imagePreview.style.display = 'block';
+                    if (fileUploadBtn) { fileUploadBtn.disabled = true; fileUploadBtn.innerHTML = 'image captured'; }
+                    if (cameraBtn) { cameraBtn.disabled = true; cameraBtn.innerHTML = 'photo taken'; }
+                };
+                reader.readAsDataURL(file);
+                window.selectedImageFile = file;
+                closeCamera();
+            } catch (err) {
+                console.error(err);
+                alert('Capture failed');
+            }
+        });
+    }
+
+    if (closeCamBtn) {
+        closeCamBtn.addEventListener('click', () => closeCamera());
+    }
+}
+
+/* --- Entry Preview (Popup) --- */
+window.showEntryPreview = function (data, marker) {
     // Create card overlay dynamically
     const overlay = document.createElement('div');
     overlay.className = 'entry-card-overlay';
@@ -873,8 +521,7 @@ function showEntryPreview(data, marker) {
             ${userImageHtml}
             ${mediaContent}
         </div>
-      </div>
-    `;
+    </div>`;
 
     document.body.appendChild(overlay);
 
@@ -886,633 +533,4 @@ function showEntryPreview(data, marker) {
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) overlay.remove();
     });
-}
-
-
-/* --- Archive Logic --- */
-function initArchive() {
-    const grid = document.getElementById('archiveGrid');
-    if (!grid) return;
-    const sortSelect = document.getElementById('archiveSort');
-
-    const render = (docs) => {
-        grid.innerHTML = '';
-        if (docs.length === 0) {
-            grid.innerHTML = '<p class="section__text">No entries found.</p>';
-            return;
-        }
-
-        docs.forEach((doc, index) => {
-            const data = doc.data();
-            const el = document.createElement('div');
-            el.className = 'entry-card';
-            // Staggered Animation Delay - capped to prevent long delays
-            el.style.animationDelay = `${Math.min(index, 20) * 0.03}s`;
-
-            el.innerHTML = `
-                <div class="entry-card__location">${(data.lat).toFixed(4)}N, ${(data.lng).toFixed(4)}E</div>
-                <div class="entry-card__text">${escapeHtml(data.text)}</div>
-                
-                <div class="entry-card__meta">
-                    <div class="entry-card__timestamp">${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        ${data.image ? '<span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--color-bg-alt); border-radius: 6px; color: var(--color-muted); font-weight: 500; letter-spacing: 0.05em;" title="Has image">IMG</span>' : ''}
-                        ${data.song ? `
-                            <a href="${data.song}" target="_blank" class="song-pill" onclick="event.stopPropagation();">
-                                ${data.thumbnail ? `<img src="${data.thumbnail}" loading="lazy">` : '<span>🎵</span>'}
-                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">
-                                    ${escapeHtml(data.songTitle || 'Linked Song')}
-                                </span>
-                            </a>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-
-            // Make card clickable to navigate to map location
-            el.style.cursor = 'pointer';
-            el.addEventListener('click', () => {
-                // Store coordinates in localStorage for map to read
-                localStorage.setItem('sonder-nav-lat', data.lat);
-                localStorage.setItem('sonder-nav-lng', data.lng);
-                window.location.href = 'map.html';
-            });
-
-            grid.appendChild(el);
-        });
-    };
-
-    let allDocs = [];
-
-    if (window.db) {
-        window.db.collection('entries').orderBy('timestamp', 'desc').limit(50).get().then(snap => {
-            allDocs = snap.docs;
-            render(allDocs);
-        }).catch(err => {
-            console.error(err);
-            grid.innerHTML = '<p>Error loading archive.</p>';
-        });
-    }
-
-    if (sortSelect) {
-        sortSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            let sorted = [...allDocs];
-            if (val === 'newest') {
-                sorted.sort((a, b) => {
-                    const tA = a.data().timestamp ? a.data().timestamp.toMillis() : 0;
-                    const tB = b.data().timestamp ? b.data().timestamp.toMillis() : 0;
-                    return tB - tA;
-                });
-            }
-            render(sorted);
-        });
-    }
-}
-
-
-/* --- Playlist Logic --- */
-function initPlaylist() {
-    const list = document.getElementById('playlistList');
-    if (!list) return;
-
-    if (window.db) {
-        window.db.collection('entries').orderBy('timestamp', 'desc').limit(100).get().then(snap => {
-            if (snap.empty) {
-                list.innerHTML = '<p>No songs found yet.</p>';
-                return;
-            }
-            snap.forEach((doc, index) => {
-                const data = doc.data();
-                if (!data.song) return;
-
-                const el = document.createElement('a');
-                el.href = data.song;
-                el.target = "_blank";
-                el.className = 'track-row';
-                el.style.animationDelay = `${Math.min(index, 20) * 0.03}s`;
-
-                el.innerHTML = `
-                    <div class="track-icon">
-                        ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; height:100%; object-fit:cover;">` : '<span>▶</span>'}
-                    </div>
-                    <div class="track-info">
-                        <div class="track-meta">
-                            ${data.songTitle ? `<span>${escapeHtml(data.songTitle)}</span>` : 'Unknown Track'}
-                            ${data.artist ? `<span>• ${escapeHtml(data.artist)}</span>` : ''}
-                        </div>
-                    </div>
-                    <div class="track-action">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                    </div>
-                `;
-                list.appendChild(el);
-            });
-        }).catch(err => {
-            console.error(err);
-            list.innerHTML = '<p>Error loading playlist.</p>';
-        });
-    }
-}
-
-/* --- Helpers --- */
-function getColorCode(name) {
-    const map = {
-        'black': '#1a1a1a',
-        'pink': '#ff9a9e',
-        'yellow': '#feca57',
-        'blue': '#74b9ff',
-        'green': '#55efc4',
-        'purple': '#a29bfe',
-        'orange': '#fd79a8'
-    };
-    return map[name] || '#1a1a1a';
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-/* --- My Entries Logic --- */
-function initMyEntries() {
-    const grid = document.getElementById('myEntriesGrid');
-    const emptyState = document.getElementById('emptyState');
-    const totalEntriesEl = document.getElementById('totalEntries');
-    const totalCountriesEl = document.getElementById('totalCountries');
-    const totalSongsEl = document.getElementById('totalSongs');
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    const syncCodeDisplay = document.getElementById('syncCodeDisplay');
-    const copySyncCodeBtn = document.getElementById('copySyncCodeBtn');
-    const syncCodeInput = document.getElementById('syncCodeInput');
-    const applySyncCodeBtn = document.getElementById('applySyncCodeBtn');
-
-    if (!grid) return;
-
-    const currentUserId = getUserId();
-    const currentUserAgent = navigator.userAgent;
-
-    // Helper: Custom Confirmation Modal
-    const showConfirmation = (title, message, onConfirm) => {
-        const modal = document.getElementById('confirmationModal');
-        if (!modal) return;
-
-        document.getElementById('confirmTitle').textContent = title;
-        document.getElementById('confirmMessage').textContent = message;
-
-        const okBtn = document.getElementById('confirmOkBtn');
-        const cancelBtn = document.getElementById('confirmCancelBtn');
-
-        // Clean listeners to prevent stacking
-        const newOk = okBtn.cloneNode(true);
-        const newCancel = cancelBtn.cloneNode(true);
-        okBtn.parentNode.replaceChild(newOk, okBtn);
-        cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
-
-        newOk.addEventListener('click', () => {
-            onConfirm();
-            modal.hidden = true;
-        });
-
-        newCancel.addEventListener('click', () => {
-            modal.hidden = true;
-        });
-
-        modal.onclick = (e) => {
-            if (e.target === modal) modal.hidden = true;
-        };
-
-        modal.hidden = false;
-    };
-
-    // Display sync code
-    if (syncCodeDisplay) {
-        syncCodeDisplay.textContent = currentUserId;
-    }
-
-    // Copy sync code
-    if (copySyncCodeBtn) {
-        copySyncCodeBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(currentUserId).then(() => {
-                copySyncCodeBtn.textContent = 'copied!';
-                setTimeout(() => {
-                    copySyncCodeBtn.textContent = 'copy code';
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                alert('Failed to copy code. Please copy manually: ' + currentUserId);
-            });
-        });
-    }
-
-    // Apply sync code
-    if (applySyncCodeBtn && syncCodeInput) {
-        applySyncCodeBtn.addEventListener('click', () => {
-            const newSyncCode = syncCodeInput.value.trim();
-            if (!newSyncCode) {
-                alert('Please enter a sync code');
-                return;
-            }
-            if (newSyncCode === currentUserId) {
-                alert('This is already your current sync code');
-                return;
-            }
-            if (confirm('This will replace your current sync code. Your entries will be synced with the other device. Continue?')) {
-                localStorage.setItem('sonder-user-id', newSyncCode);
-                window.location.reload();
-            }
-        });
-    }
-
-    // Sync modal handlers
-    const syncModal = document.getElementById('syncModal');
-    const syncSettingsBtn = document.getElementById('syncSettingsBtn');
-    const syncModalClose = document.getElementById('syncModalClose');
-
-    // Open sync modal
-    if (syncSettingsBtn && syncModal) {
-        syncSettingsBtn.addEventListener('click', () => {
-            syncModal.hidden = false;
-        });
-    }
-
-    // Close sync modal
-    if (syncModalClose && syncModal) {
-        syncModalClose.addEventListener('click', () => {
-            syncModal.hidden = true;
-        });
-
-        // Close on overlay click
-        syncModal.addEventListener('click', (e) => {
-            if (e.target === syncModal) {
-                syncModal.hidden = true;
-            }
-        });
-    }
-
-    // Fetch entries from Firestore by userId ONLY (Strict Privacy)
-    if (window.db) {
-        window.db.collection('entries')
-            .where('userId', '==', currentUserId)
-            .get()
-            .then(snapshot => {
-                const entries = [];
-                const entryIds = new Set();
-                const myEntryIds = JSON.parse(localStorage.getItem('sonder-my-entries') || '[]');
-
-                snapshot.forEach(doc => {
-                    const entry = { id: doc.id, ...doc.data() };
-                    entries.push(entry);
-                    entryIds.add(doc.id);
-
-                    // Sync local storage if needed (e.g. if synced from another device)
-                    if (!myEntryIds.includes(doc.id)) {
-                        myEntryIds.push(doc.id);
-                    }
-                });
-
-                // Update local storage with any newly discovered synced entries
-                localStorage.setItem('sonder-my-entries', JSON.stringify(myEntryIds));
-
-                // Process and render functions below...
-
-                // (Legacy userAgent fallback removed for security)
-
-
-                if (entries.length === 0) {
-                    grid.style.display = 'none';
-                    emptyState.hidden = false;
-                    return;
-                }
-
-                // Sort by timestamp (newest first)
-                entries.sort((a, b) => {
-                    const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
-                    const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
-                    return timeB - timeA;
-                });
-
-                // Calculate stats
-                const totalSongs = entries.filter(e => e.song).length;
-                const locations = new Set(entries.map(e => `${e.lat.toFixed(2)},${e.lng.toFixed(2)}`));
-
-                totalEntriesEl.textContent = entries.length;
-                totalCountriesEl.textContent = locations.size;
-                totalSongsEl.textContent = totalSongs;
-
-                // Render entries
-                grid.innerHTML = '';
-                entries.forEach((entry, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'my-entry-card';
-                    card.style.animationDelay = `${Math.min(index, 20) * 0.05}s`;
-
-                    const colorCode = getColorCode(entry.color);
-                    const dateStr = entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just now';
-
-                    // Image indicator badge styling
-                    const imgBadge = entry.image ?
-                        `<span class="my-entry-card__img-badge" title="Has image">IMG</span>` : '';
-
-                    card.innerHTML = `
-                        <div class="my-entry-card__color-indicator" style="background: ${colorCode};"></div>
-                        <div class="my-entry-card__header">
-                            <div class="my-entry-card__location">
-                                ${entry.lat.toFixed(4)}°, ${entry.lng.toFixed(4)}°
-                                ${imgBadge}
-                            </div>
-                            <div class="my-entry-card__date">${dateStr}</div>
-                        </div>
-                        <div class="my-entry-card__text">${escapeHtml(entry.text)}</div>
-                        ${entry.song ? `
-                            <a href="${escapeHtml(entry.song)}" target="_blank" class="my-entry-card__song" onclick="event.stopPropagation();">
-                                <span class="my-entry-card__song-icon">♪</span>
-                                <span>${escapeHtml(entry.songTitle || 'Linked Song')}</span>
-                            </a>
-                        ` : ''}
-                        <div class="my-entry-card__actions">
-                            <button class="my-entry-card__action-btn my-entry-card__action-btn--view">view on map</button>
-                            <button class="my-entry-card__action-btn my-entry-card__action-btn--delete" data-entry-id="${entry.id}">delete</button>
-                        </div>
-                    `;
-
-                    // View on Map handler (Smart Navigation)
-                    const viewBtn = card.querySelector('.my-entry-card__action-btn--view');
-                    if (viewBtn) {
-                        viewBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            // Save coordinates for map to fly to
-                            localStorage.setItem('sonder-nav-lat', entry.lat);
-                            localStorage.setItem('sonder-nav-lng', entry.lng);
-                            window.location.href = 'map.html';
-                        });
-                    }
-
-                    // Delete button handler
-                    const deleteBtn = card.querySelector('.my-entry-card__action-btn--delete');
-                    deleteBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        showConfirmation('delete entry?', 'are you sure you want to delete this entry? this cannot be undone.', () => {
-                            deleteEntry(entry.id);
-                        });
-                    });
-
-                    grid.appendChild(card);
-                });
-            })
-            .catch(err => {
-                console.error('Error loading my entries:', err);
-                grid.innerHTML = '<p class="section__text">Error loading your entries.</p>';
-            });
-    }
-
-    // Clear all entries
-    if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', () => {
-            showConfirmation('clear all entries?', 'this will permanently delete all your entries from the database. cannot be undone.', () => {
-                if (!window.db) return;
-
-                // 1. Get all user entries
-                window.db.collection('entries')
-                    .where('userId', '==', currentUserId)
-                    .get()
-                    .then(snapshot => {
-                        // 2. Batch delete
-                        const batch = window.db.batch();
-                        snapshot.forEach(doc => {
-                            batch.delete(doc.ref);
-                        });
-                        return batch.commit();
-                    })
-                    .then(() => {
-                        // 3. Clear local storage & reload
-                        localStorage.removeItem('sonder-my-entries');
-                        window.location.reload();
-                    })
-                    .catch(err => {
-                        console.error('Error clearing entries:', err);
-                        alert('Error clearing entries. Please try again.');
-                    });
-            });
-        });
-    }
-}
-
-function deleteEntry(entryId) {
-    // Delete from Firestore server
-    if (window.db) {
-        window.db.collection('entries').doc(entryId).delete()
-            .then(() => {
-                // Remove from localStorage
-                const myEntries = JSON.parse(localStorage.getItem('sonder-my-entries') || '[]');
-                const updatedEntries = myEntries.filter(id => id !== entryId);
-                localStorage.setItem('sonder-my-entries', JSON.stringify(updatedEntries));
-
-                // Reload page
-                window.location.reload();
-            })
-            .catch(error => {
-                console.error('Error deleting entry:', error);
-                alert('Failed to delete entry. Please try again.');
-            });
-    }
-}
-
-/* --- Updates Modal Logic --- */
-const appUpdates = [
-    { date: '12.11.2025', title: 'proximity notifications', text: 'get notified when someone posts near your memories (200m radius).' },
-    { date: '12.10.2025', title: 'shareable entries', text: 'share specific moments with a direct link that flies to the location.' },
-    { date: '12.10.2025', title: 'support the project', text: 'added a way (ko-fi) to support server costs and future development.' },
-    { date: '12.09.2025', title: 'camera capture', text: 'take photos directly from the map with live preview and smooth mirroring.' },
-    { date: '12.09.2025', title: 'cross-device sync', text: 'access your entries from any device using your unique sync code.' },
-    { date: '12.08.2025', title: 'image uploads', text: 'attach photos to your map entries and view them in the archive.' },
-    { date: '12.08.2025', title: 'archive navigation', text: 'click any entry card to jump directly to its location on the map.' },
-    { date: '12.05.2025', title: 'improved modals', text: 'better scrolling and layout across all devices.' },
-    { date: '12.04.2025', title: 'polished design', text: 'smoother animations and enhanced mobile experience.' },
-    { date: '12.01.2025', title: 'map clustering', text: 'points now group together when zoomed out.' },
-    { date: '11.28.2025', title: 'dark mode', text: 'seamless theme switching for late night browsing.' },
-    { date: '11.20.2025', title: 'custom markers', text: 'unique visual language for different moment types.' },
-    { date: '11.15.2025', title: 'Spotify integration', text: 'link songs to your memories.' },
-    { date: '11.10.2025', title: 'beta launch', text: 'sonder is now live.' }
-];
-
-function initUpdatesModal() {
-    const modal = document.getElementById('updatesModal');
-    const btn = document.getElementById('updatesBtn');
-    const badge = btn ? btn.querySelector('.updates-btn__badge') : null;
-    const closeBtn = document.getElementById('closeUpdatesBtn');
-    const actionBtn = document.getElementById('closeUpdatesActionBtn');
-    const updatesList = document.getElementById('updatesList');
-
-    // Render Updates List
-    if (updatesList) {
-        // Group updates by date
-        const groupedUpdates = {};
-        appUpdates.forEach(update => {
-            if (!groupedUpdates[update.date]) {
-                groupedUpdates[update.date] = [];
-            }
-            groupedUpdates[update.date].push(update);
-        });
-
-        // Render grouped updates
-        updatesList.innerHTML = Object.keys(groupedUpdates).map(date => {
-            const updates = groupedUpdates[date];
-            const updatesHtml = updates.map(u => `
-                <li style="margin-bottom: 0.25rem;">
-                    <strong>${u.title}:</strong> ${u.text}
-                </li>
-            `).join('');
-
-            return `
-                <li style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <span style="opacity: 0.6; font-size: 0.85rem; display: block; margin-bottom: 0.1rem;">${date}</span>
-                    <ul style="margin-left: 0.5rem; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 0.8rem; list-style: none; display: flex; flex-direction: column; gap: 0.3rem;">
-                        ${updatesHtml}
-                    </ul>
-                </li>
-            `;
-        }).join('');
-    }
-
-    // --- Smart Badge Logic ---
-    const totalUpdates = appUpdates.length;
-    let lastSeenCount = parseInt(localStorage.getItem('sonder-last-seen-count')) || 0;
-
-    // If migrating from old boolean system, treat as 0 seen (or 11 if we want to be nice, but 0 is safer to ensure they see the new system)
-    // Actually, if 'sonder-updates-read' is true, maybe we should assume they saw all previous? 
-    // Let's just start fresh or default to 0 to show them the new system features.
-
-    let unreadCount = totalUpdates - lastSeenCount;
-    if (unreadCount < 0) unreadCount = 0; // Prevention against negative if items removed
-
-    // Update Badge Count
-    if (badge) {
-        if (unreadCount > 0) {
-            badge.textContent = unreadCount;
-            badge.style.display = 'inline-flex';
-            badge.style.alignItems = 'center';
-            badge.style.justifyContent = 'center';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-
-    if (!modal || !btn) return;
-
-    const open = () => {
-        modal.hidden = false;
-        document.body.style.overflow = 'hidden';
-
-        // Mark all current updates as seen
-        localStorage.setItem('sonder-last-seen-count', totalUpdates.toString());
-
-        // Hide badge immediately
-        if (badge) {
-            badge.style.display = 'none';
-        }
-    };
-
-    const close = () => {
-        modal.hidden = true;
-        document.body.style.overflow = '';
-    };
-
-    btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        open();
-    });
-
-    if (closeBtn) closeBtn.addEventListener('click', close);
-    if (actionBtn) actionBtn.addEventListener('click', close);
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) close();
-    });
-}
-
-/* --- Initialization --- */
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Updates Modal
-    initUpdatesModal();
-
-    // Initialize Theme globally
-    if (typeof initTheme === 'function') {
-        initTheme();
-    }
-
-    // Initialize Sidebar Toggle
-    if (typeof initSidebarToggle === 'function') {
-        initSidebarToggle();
-    }
-
-    // Router based on data-page or element existence
-    const page = document.documentElement.getAttribute('data-page');
-
-    // Map Page
-    if (document.getElementById('map')) {
-        if (typeof initMap === 'function') initMap();
-    }
-
-
-    // Archive Page
-    if (page === 'archive' || document.getElementById('archiveGrid')) {
-        if (typeof initArchive === 'function') initArchive();
-    }
-
-    // Playlist Page
-    if (page === 'playlist' || document.getElementById('playlistList')) {
-        if (typeof initPlaylist === 'function') initPlaylist();
-    }
-
-    // My Entries Page
-    if (page === 'my-entries' || document.getElementById('myEntriesGrid')) {
-        if (typeof initMyEntries === 'function') initMyEntries();
-    }
-
-    // Welcome Modal for First-Time Users
-    const welcomeModal = document.getElementById('welcomeModal');
-    const welcomeModalClose = document.getElementById('welcomeModalClose');
-    const welcomeModalGotIt = document.getElementById('welcomeModalGotIt');
-
-    if (welcomeModal) {
-        // Check if user has seen the welcome modal before
-        const hasSeenWelcome = localStorage.getItem('sonder-welcome-seen');
-
-        if (!hasSeenWelcome) {
-            // Show welcome modal for first-time users
-            setTimeout(() => {
-                welcomeModal.hidden = false;
-            }, 500); // Small delay for better UX
-        }
-
-        // Close button handler
-        if (welcomeModalClose) {
-            welcomeModalClose.addEventListener('click', () => {
-                welcomeModal.hidden = true;
-                localStorage.setItem('sonder-welcome-seen', 'true');
-            });
-        }
-
-        // "Got it" button handler
-        if (welcomeModalGotIt) {
-            welcomeModalGotIt.addEventListener('click', () => {
-                welcomeModal.hidden = true;
-                localStorage.setItem('sonder-welcome-seen', 'true');
-            });
-        }
-
-        // Close on overlay click
-        welcomeModal.addEventListener('click', (e) => {
-            if (e.target === welcomeModal) {
-                welcomeModal.hidden = true;
-                localStorage.setItem('sonder-welcome-seen', 'true');
-            }
-        });
-    }
-});
+};

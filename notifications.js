@@ -192,13 +192,14 @@
             }
 
             // Update list
+            // Update list
             if (notifs.length === 0) {
                 notificationsList.innerHTML = '';
-                emptyState.style.display = 'flex';
-                // emptyState.hidden = false;
+                // emptyState.style.display = 'flex';
+                emptyState.hidden = false;
             } else {
-                emptyState.style.display = 'none';
-                // emptyState.hidden = true;
+                // emptyState.style.display = 'none';
+                emptyState.hidden = true;
                 renderNotifications(notifs);
             }
         }

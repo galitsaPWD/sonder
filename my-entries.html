@@ -26,18 +26,18 @@
             <a href="about.html">about</a>
             <a href="archive.html">archive</a>
             <a href="playlist.html">playlist</a>
-            <button id="notificationsBtn" class="notifications-btn" title="Notifications">
+            <button id="notificationsBtn" class="notifications-btn" title="Notifications" aria-label="notifications">
                 <span class="notifications-btn__icon">⩍</span>
                 <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
             </button>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+            <button class="theme-toggle" id="themeToggle" title="Mode Switch" aria-label="Toggle theme">◐</button>
         </nav>
     </header>
 
     <main class="section">
         <div class="section__inner">
             <h1 class="page-title">my entries</h1>
-            <p class="page-subtitle">your personal collection of moments left on the map</p>
+            <p class="page-subtitle">your personal collection of moments left on the map.</p>
 
             <div class="my-entries-stats">
                 <div class="stat-card">
@@ -62,7 +62,7 @@
             <div class="my-entries-grid" id="myEntriesGrid">
                 <!-- Entries will be populated here -->
             </div>
-
+            <!-- Empty State -->
             <div class="empty-state" id="emptyState" hidden>
                 <div class="empty-state__icon">(╯•﹏•╰)</div>
                 <h3 class="empty-state__title">no entries yet</h3>
@@ -139,6 +139,14 @@
         firebase.initializeApp(firebaseConfig);
         window.db = firebase.firestore();
     </script>
+    <script src="config.js"></script>
+    <script src="theme.js"></script>
+    <script src="camera-utils.js"></script>
+    <script src="page-logic.js"></script>
+    <script src="config.js"></script>
+    <script src="theme.js"></script>
+    <script src="camera-utils.js"></script>
+    <script src="page-logic.js"></script>
     <script src="sonder.js"></script>
     <script src="notifications.js"></script>
 

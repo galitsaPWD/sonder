@@ -27,11 +27,11 @@
       <a href="about.html">about</a>
       <a href="archive.html">archive</a>
       <a href="playlist.html">playlist</a>
-      <button id="notificationsBtn" class="notifications-btn" title="Notifications">
+      <button id="notificationsBtn" class="notifications-btn" title="Notifications" aria-label="notifications">
         <span class="notifications-btn__icon">⩍</span>
         <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
       </button>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+      <button class="theme-toggle" id="themeToggle" title="Mode Switch" aria-label="Toggle theme">◐</button>
     </nav>
   </header>
 
@@ -65,8 +65,9 @@
 
   <div class="entry-preview" id="entryPreview" hidden></div>
 
-  <div class="modal-overlay" id="mapEntryModal" hidden>
-    <div class="modal">
+  <!-- Map Entry Modal -->
+  <div class="modal" id="mapEntryModal" hidden>
+    <div class="modal__content">
       <button class="modal__close" id="mapEntryModalClose" aria-label="Close">×</button>
       <h2 class="modal__title">leave something small here</h2>
       <form class="entry-form" id="mapEntryForm">
@@ -92,25 +93,20 @@
           <div style="position: relative; display: inline-block; max-width: 100%;">
             <img id="imagePreviewImg"
               style="max-width: 100%; border-radius: 12px; max-height: 200px; object-fit: cover; display: block;" />
-            <button type="button" id="removeImage" class="image-remove-btn" title="Remove image">×</button>
+            <button type="button" id="removeImage" class="image-remove-btn" title="Remove image"
+              aria-label="remove image"
+              style="border-radius: 50% !important; width: 24px !important; height: 24px !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important;">×</button>
           </div>
         </div>
         <label class="entry-form__label">note color
           <div class="color-picker" id="mapEntryColorPicker">
-            <button type="button" class="color-option" data-color="black" style="background: #1a1a1a;"
-              title="black"></button>
-            <button type="button" class="color-option" data-color="pink"
-              style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);" title="pink"></button>
-            <button type="button" class="color-option" data-color="yellow"
-              style="background: linear-gradient(135deg, #feca57 0%, #ffd89b 100%);" title="yellow"></button>
-            <button type="button" class="color-option" data-color="blue"
-              style="background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);" title="blue"></button>
-            <button type="button" class="color-option" data-color="green"
-              style="background: linear-gradient(135deg, #55efc4 0%, #81ecec 100%);" title="green"></button>
-            <button type="button" class="color-option" data-color="purple"
-              style="background: linear-gradient(135deg, #a29bfe 0%, #dfe6e9 100%);" title="purple"></button>
-            <button type="button" class="color-option" data-color="orange"
-              style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);" title="orange"></button>
+            <button type="button" class="color-option selected" data-color="black" aria-label="black"></button>
+            <button type="button" class="color-option" data-color="pink" aria-label="pink"></button>
+            <button type="button" class="color-option" data-color="yellow" aria-label="yellow"></button>
+            <button type="button" class="color-option" data-color="blue" aria-label="blue"></button>
+            <button type="button" class="color-option" data-color="green" aria-label="green"></button>
+            <button type="button" class="color-option" data-color="purple" aria-label="purple"></button>
+            <button type="button" class="color-option" data-color="orange" aria-label="orange"></button>
           </div>
         </label>
 
@@ -140,8 +136,8 @@
   </div>
 
   <!-- Camera Capture Modal -->
-  <div class="modal-overlay" id="cameraModal" hidden>
-    <div class="modal modal--camera">
+  <div class="modal" id="cameraModal" hidden>
+    <div class="modal__content modal--camera">
       <button class="modal__close" id="cameraModalClose" aria-label="Close">×</button>
       <div class="camera-viewport">
         <video id="cameraVideo" autoplay playsinline></video>
@@ -155,7 +151,8 @@
             <div class="camera-capture-btn__inner"></div>
           </button>
 
-          <button type="button" class="camera-switch-btn" id="switchCameraBtn" title="Switch camera">
+          <button type="button" class="camera-switch-btn" id="switchCameraBtn" title="Switch camera"
+            aria-label="switch camera">
             ↳↰
           </button>
         </div>
@@ -163,12 +160,15 @@
     </div>
   </div>
 
+  <!-- Entry Preview Modal -->
+  <div class="entry-preview" id="entryPreview" hidden></div>
+
   <!-- Welcome Modal for First-Time Users -->
-  <div class="modal-overlay" id="welcomeModal" hidden>
-    <div class="modal modal--welcome">
+  <div class="modal" id="welcomeModal" hidden>
+    <div class="modal__content modal--welcome">
       <button class="modal__close" id="welcomeModalClose" aria-label="Close">×</button>
       <h2 class="modal__title">welcome to sonder</h2>
-      <div class="modal__content">
+      <div>
         <p style="margin-bottom: 1rem; line-height: 1.6;">
           this is a shared space where people leave traces of their moments—memories, feelings, songs they were
           listening to.
@@ -201,6 +201,11 @@
     firebase.initializeApp(firebaseConfig);
     window.db = firebase.firestore();
   </script>
+  <script src="config.js"></script>
+  <script src="theme.js"></script>
+  <script src="camera-utils.js"></script>
+  <script src="map-logic.js"></script>
+  <script src="page-logic.js"></script>
   <script src="sonder.js"></script>
   <script src="share.js"></script>
   <script src="notifications.js"></script>
@@ -223,6 +228,11 @@
         </div>
       </div>
     </div>
+  </div>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">dropping your memory...</div>
   </div>
 </body>
 

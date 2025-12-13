@@ -26,11 +26,11 @@
       <a href="map.html">map</a>
       <a href="archive.html">archive</a>
       <a href="playlist.html">playlist</a>
-      <button id="notificationsBtn" class="notifications-btn" title="Notifications">
+      <button id="notificationsBtn" class="notifications-btn" title="Notifications" aria-label="notifications">
         <span class="notifications-btn__icon">⩍</span>
         <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
       </button>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+      <button class="theme-toggle" id="themeToggle" title="Mode Switch" aria-label="Toggle theme">◐</button>
     </nav>
   </header>
 
@@ -43,6 +43,13 @@
 
       <div id="playlistList" class="playlist-list fade-up-delay-2">
         <!-- JS loads here -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="playlistEmpty" hidden>
+        <div class="empty-state__icon">♪┏(・o･)┛♪</div>
+        <h3 class="empty-state__title">no songs yet</h3>
+        <p class="empty-state__text">shared songs from the map will appear here</p>
       </div>
     </div>
   </main>
@@ -80,6 +87,10 @@
     firebase.initializeApp(firebaseConfig);
     window.db = firebase.firestore();
   </script>
+  <script src="config.js"></script>
+  <script src="theme.js"></script>
+  <script src="camera-utils.js"></script>
+  <script src="page-logic.js"></script>
   <script src="sonder.js"></script>
   <script src="notifications.js"></script>
 
