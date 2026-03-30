@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "460176647110",
+    "project_id": "after-midnight-4fe34",
+    "storage_bucket": "after-midnight-4fe34.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460176647110:android:99c26ea88a0b49ab5a08c7",
+        "android_client_info": {
+          "package_name": "com.nico.aftermidnight"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD96rrf0G-CD5JfzFIr27bMynpwBwdJZro"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

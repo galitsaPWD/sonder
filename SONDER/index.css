@@ -1,0 +1,95 @@
+/* SONDER - Index / Landing Styles */
+
+/* Hero Section */
+.hero {
+    position: relative;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+}
+
+.hero__map-blur {
+    position: absolute;
+    inset: 0;
+    background-image: url("https://tile.openstreetmap.org/2/2/1.png");
+    background-size: cover;
+    background-position: center;
+    filter: blur(28px) saturate(0.7);
+    transform: scale(1.08);
+    /* Initial scale to remove blur edges */
+    animation: breathe 20s ease-in-out infinite alternate;
+}
+
+.hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(240, 220, 180, 0.6), transparent 52%),
+        radial-gradient(circle at bottom right, rgba(15, 15, 15, 0.9), #1f1e1c);
+    mix-blend-mode: multiply;
+}
+
+.hero__content {
+    position: relative;
+    z-index: 5;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 6vw 6rem;
+}
+
+.hero__title-block {
+    max-width: 540px;
+    color: #f5f1e8;
+    text-align: left;
+    animation: fadeUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+.hero__title {
+    font-size: clamp(3.6rem, 8vw, 6.2rem);
+    /* Increased max size for impact */
+    margin: 0 0 0.5rem;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+}
+
+.hero__subtitle {
+    font-size: 1.15rem;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    margin: 1.5rem 0 2.5rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.hero__cta {
+    border-radius: 999px;
+    min-width: 140px;
+}
+
+/* Animations */
+@keyframes breathe {
+    0% {
+        transform: scale(1.08);
+    }
+
+    100% {
+        transform: scale(1.15);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

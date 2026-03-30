@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - MoodByte</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div id="settings-animated-bg"></div>
+  <button id="back-btn" aria-label="Back to MoodByte Home"><span class="back-arrow">←</span></button>
+  <div class="settings-container">
+    <h1>Settings</h1>
+    <div class="settings-section-header">Theme</div>
+    <section class="theme-section">
+      <div class="custom-theme-section">
+        <h3>Custom Background</h3>
+        <label for="custom-bg-image">Background Image/GIF:</label>
+        <label class="custom-file-label" tabindex="0">Choose File
+          <input type="file" id="custom-bg-image" accept="image/*,image/gif" style="display:none;">
+        </label>
+        <span id="custom-file-name" style="color:#b7a8f2;font-size:0.98rem;margin-bottom:0.5em;display:block;"></span>
+        <button id="save-custom-theme">Save Background</button>
+        <div id="custom-theme-preview"></div>
+      </div>
+    </section>
+    <div class="settings-section-header">App Preferences</div>
+    <section class="preferences-section">
+      <h2>App Preferences</h2>
+      <label><input type="checkbox" id="toggle-sfx"> Sound Effects</label>
+      <label><input type="checkbox" id="toggle-ambient" checked> Ambient Sound</label>
+      <label><input type="checkbox" id="toggle-music"> Music</label>
+      <label>Default Pomodoro Duration: <input type="number" id="default-pomodoro" min="5" max="60" value="25"> min</label>
+      <label>Default Mood: <select id="default-mood">
+        <option value="great">Great</option>
+        <option value="good">Good</option>
+        <option value="okay">Okay</option>
+        <option value="meh">Meh</option>
+        <option value="bad">Bad</option>
+        <option value="angry">Angry</option>
+      </select></label>
+    </section>
+    <div class="settings-section-header">Accessibility</div>
+    <section class="accessibility-section">
+      <h2>Accessibility</h2>
+      <label>Font Size: <input type="range" id="font-size-slider" min="14" max="24" value="16"> <span id="font-size-value">16</span>px</label>
+      <label><input type="checkbox" id="high-contrast-toggle"> High Contrast Mode</label>
+    </section>
+    <div class="settings-section-header">Data Management</div>
+    <section class="data-section">
+      <h2>Data Management</h2>
+      <button id="export-data">Export Data</button>
+      <button id="import-data">Import Data</button>
+      <button id="clear-data" class="danger">Clear All Data</button>
+    </section>
+    <div class="settings-section-header">About & Help</div>
+    <section class="about-section">
+      <h2>About & Help</h2>
+      <p>MoodByte v1.0</p>
+      <p>Created by wana</p>
+      <a href="#" id="open-help">Keyboard Shortcuts & Help</a>
+    </section>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html> 

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>After Midnight | The Dimensional Sanctuary</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+    <!-- Transition Layer -->
+    <div class="portal-loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-text pulse-text">
+                <span>The World Sleeps.</span>
+                <span>Join The Void.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="noise"></div>
+    <div id="canvas-container"></div>
+    <div class="cursor-glow"></div>
+
+    <main id="main-content">
+        <section class="hero-section active">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="thin">After</span>
+                    <span class="italic highlight illuminate">Midnight</span>
+                </h1>
+
+                <div class="countdown-container">
+                    <span class="countdown-label illuminate">Gate opening in</span>
+                    <div id="countdown" class="countdown-timer illuminate">00:00:00</div>
+                </div>
+
+                <p class="hero-subtext highlight illuminate">The world is <span class="white">yours</span> when it
+                    sleeps.</p>
+            </div>
+        </section>
+        <br>
+
+        <section class="biography-section">
+            <div class="bio-content">
+                <div class="bio-text">
+                    <h2 class="section-label illuminate">01 // Identity</h2>
+                    <h3 class="bio-headline illuminate">I am <span class="editorial">CRM</span>. <br>I build for the
+                        <span class="italic">silence.</span>
+                    </h3>
+                    <p class="lead illuminate">There is a specific kind of clarity that only arrives after the rest of
+                        the world
+                        has given up on the day.</p>
+
+                    <div class="bio-expanding-text">
+                        <p class="illuminate">My journey isn't just about code; it's about the emotional response to
+                            technical precision. I've always been drawn to the "in-between" spaces—the hours where the
+                            sunlight has long since faded and the dawn is still an uncertainty. This is where
+                            <strong>After Midnight</strong> was born.
+                        </p>
+
+                        <p class="illuminate">As a developer and designer, I believe that technology should feel as
+                            organic as the thoughts it helps transmit. We live in an era of constant, noisy
+                            connectivity. I wanted to build the opposite: a sanctuary for the individual, a place where
+                            the value of a message isn't measured in likes, but in the fleeting moment of its existence.
+                        </p>
+
+                        <div class="bio-manifesto">
+                            <h4 class="illuminate">Developing for the rest of us</h4>
+                            <p class="illuminate">I'm currently a student exploring the boundaries of web and mobile
+                                interactions. My goal is to move past 'functional UI' and into 'experiential art.'
+                                Whether it's the specific easing of a particle in 3D space or the way a word dissolves
+                                into the void, every detail in this project is a piece of my own midnight philosophy.
+                            </p>
+                        </div>
+
+                        <p class="illuminate"><strong>After Midnight</strong> is my most personal work. An invitation to
+                            be anonymous, to be heard, and to be forgotten—all at once.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="experience-section">
+            <div class="exp-grid">
+                <div class="exp-card">
+                    <div class="card-num">I</div>
+                    <h3 class="illuminate">Ephemeral</h3>
+                    <p class="illuminate">Thoughts are released like a sigh in the dark, existing only as long as the
+                        midnight air allows.
+                    </p>
+                </div>
+                <div class="exp-card">
+                    <div class="card-num">II</div>
+                    <h3 class="illuminate">Collective</h3>
+                    <p class="illuminate">You inhabit the space with others. Silent confirmation that you are not alone.
+                    </p>
+                </div>
+                <div class="exp-card">
+                    <div class="card-num">III</div>
+                    <h3 class="illuminate">Temporal</h3>
+                    <p class="illuminate">The gates only open when the world is asleep.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="download-section">
+            <div class="obsidian-cta">
+                <h2 class="cta-title illuminate">Join the Collective</h2>
+                <a href="After Midnight.apk" class="void-btn" download="After Midnight.apk">
+                    Download APK
+                </a>
+                <div class="meta-info">
+                    <span class="illuminate">Android v1.0.0 / BATCH Alpha-1</span>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-bottom">
+                <p class="illuminate">Designed by CRM / 2026</p>
+                <div class="f-links">
+                    <a href="https://github.com/galitsaPWD" class="illuminate" target="_blank">Github</a>
+                    <a href="https://crm-portfolio2025.vercel.app/" class="illuminate" target="_blank">Portfolio</a>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // --- THREE.JS ENGINE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // Starfield
+        const starCount = 3000;
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = new Float32Array(starCount * 3);
+        const starSizes = new Float32Array(starCount);
+
+        for (let i = 0; i < starCount; i++) {
+            starPos[i * 3] = (Math.random() - 0.5) * 800;
+            starPos[i * 3 + 1] = (Math.random() - 0.5) * 800;
+            starPos[i * 3 + 2] = (Math.random() - 0.5) * 800;
+            starSizes[i] = Math.random() * 2;
+        }
+
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const starMat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.7,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        const stars = new THREE.Points(starGeo, starMat);
+        scene.add(stars);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+
+            // Update illumination for each element individually for 100% precision
+            document.querySelectorAll('.illuminate').forEach(el => {
+                const rect = el.getBoundingClientRect();
+                el.style.setProperty('--x', `${x - rect.left}px`);
+                el.style.setProperty('--y', `${y - rect.top}px`);
+            });
+
+            // Dramatically reduced sensitivity (/500 instead of /100)
+            targetX = (x - window.innerWidth / 2) / 500;
+            targetY = (y - window.innerHeight / 2) / 500;
+
+            // Cursor Glow
+            const glow = document.querySelector('.cursor-glow');
+            if (glow) {
+                glow.style.left = `${e.clientX}px`;
+                glow.style.top = `${e.clientY}px`;
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            stars.rotation.y += 0.0001;
+            stars.rotation.x += 0.00005;
+
+            // Smoother, dampened interpolation
+            camera.position.x += (targetX - camera.position.x) * 0.02;
+            camera.position.y += (-targetY - camera.position.y) * 0.02;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- OBSERVER & LOADER ---
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            // Ensure loader is completely removed from interaction
+            setTimeout(() => {
+                loader.classList.add('hide');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 1500);
+            }, 1000);
+        });
+
+        // --- COUNTDOWN LOGIC ---
+        function updateCountdown() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            const diff = tomorrow - now;
+
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+
+            const display = [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
+            document.getElementById('countdown').innerText = display;
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll('section, .exp-card').forEach(el => observer.observe(el));
+    </script>
+</body>
+
+</html>

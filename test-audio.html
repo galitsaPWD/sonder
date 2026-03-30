@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Ambient Sound Test</h1>
+    <button onclick="testChill()">Test Chill Sound</button>
+    <button onclick="testRainy()">Test Rainy Sound</button>
+    <button onclick="testNight()">Test Night Sound</button>
+    <button onclick="testProductive()">Test Productive Sound</button>
+    
+    <div id="status"></div>
+    
+    <script>
+        function testAudio(url, name) {
+            const status = document.getElementById('status');
+            status.innerHTML += `<p>Testing ${name}...</p>`;
+            
+            const audio = new Audio(url);
+            audio.volume = 0.3;
+            
+            audio.addEventListener('canplaythrough', () => {
+                status.innerHTML += `<p>✅ ${name} loaded successfully</p>`;
+                audio.play().then(() => {
+                    status.innerHTML += `<p>🎵 ${name} playing...</p>`;
+                    setTimeout(() => {
+                        audio.pause();
+                        status.innerHTML += `<p>⏸️ ${name} stopped</p>`;
+                    }, 3000);
+                }).catch(error => {
+                    status.innerHTML += `<p>❌ ${name} play failed: ${error.message}</p>`;
+                });
+            });
+            
+            audio.addEventListener('error', (e) => {
+                status.innerHTML += `<p>❌ ${name} load failed: ${e}</p>`;
+            });
+        }
+        
+        function testChill() {
+            testAudio('assets/ambient/chill.mp3', 'Chill');
+        }
+        
+        function testRainy() {
+            testAudio('assets/ambient/rainy.mp3', 'Rainy');
+        }
+        
+        function testNight() {
+            testAudio('assets/ambient/night.mp3', 'Night');
+        }
+        
+        function testProductive() {
+            testAudio('assets/ambient/productive.mp3', 'Productive');
+        }
+    </script>
+</body>
+</html> 

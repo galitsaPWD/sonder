@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodByte</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="animated-bg"></div>
+  <div id="ambient-effects"></div>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="main-header">
+        <div class="header-actions" style="display: flex; align-items: center; gap: 0.5rem;">
+          <button id="notification-toggle" class="notification-toggle" aria-label="Toggle notifications">
+            <i class="fas fa-bell"></i>
+          </button>
+          <button id="settings-btn" class="settings-btn" aria-label="Open settings">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div id="notification-container"></div>
+      </div>
+    
+      <div id="note-board">
+        <!-- Notes will appear here -->
+      </div>
+    </main>
+
+    <aside class="sidebar">
+      <h1>🌙 MoodByte</h1>
+
+      <div class="new-note-panel">
+        <h3>+ Add a Note</h3>
+        <textarea id="new-note-text" placeholder="Type your thoughts here..."></textarea>
+        <button id="add-note-btn">Add Sticky Note</button>
+      </div>
+
+      <div class="widget-container">
+        <div class="widget-header">
+          <h3>Themes</h3>
+          <button class="widget-toggle" aria-label="Toggle Theme Selector">-</button>
+        </div>
+        <div class="widget-content">
+          <div class="theme-selector" aria-label="Theme selector">
+            <button class="theme-btn" data-theme="chill" title="Chill">🌿</button>
+            <button class="theme-btn" data-theme="rainy" title="Rainy">🌧️</button>
+            <button class="theme-btn" data-theme="night" title="Night Owl">🦉</button>
+            <button class="theme-btn" data-theme="productive" title="Productive">💡</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-container">
+        <div class="widget-header">
+          <h3>Music</h3>
+          <button class="widget-toggle" aria-label="Toggle Music Player">-</button>
+        </div>
+        <div class="widget-content">
+          <div class="music-player">
+            <div class="track-info">
+              <div class="track-details">
+                <span id="track-name">Lofi Beats</span>
+                <span id="track-time">0:00 / 0:00</span>
+              </div>
+            </div>
+            <input type="range" id="music-progress" min="0" max="100" value="0" aria-label="Music progress">
+            <div class="music-controls-staggered">
+              <!-- Top row -->
+              <button id="prev-track" class="control-btn" style="grid-row:1;grid-column:1;" aria-label="Previous track"><i class="fas fa-backward"></i></button>
+              <button id="play-music" class="control-btn main-play" style="grid-row:1;grid-column:3;" aria-label="Play/Pause music"><i class="fas fa-play"></i></button>
+              <button id="next-track" class="control-btn" style="grid-row:1;grid-column:5;" aria-label="Next track"><i class="fas fa-forward"></i></button>
+              <!-- Bottom row -->
+              <button id="shuffle-btn" class="control-btn" style="grid-row:2;grid-column:2;" aria-label="Shuffle"><i class="fas fa-random"></i></button>
+              <button id="loop-btn" class="control-btn" style="grid-row:2;grid-column:4;" aria-label="Loop"><i class="fas fa-redo"></i></button>
+            </div>
+            <div class="music-actions">
+              <input type="file" id="add-music-input" accept="audio/*" style="display: none;">
+              <button id="add-music-btn" aria-label="Add new music"><i class="fas fa-plus"></i></button>
+              <button id="delete-track" class="track-delete" aria-label="Delete current track"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="volume-control">
+              <span id="volume-icon"><i class="fas fa-volume-up"></i></span>
+              <input type="range" id="music-volume" min="0" max="1" step="0.01" value="0.5" aria-label="Music volume">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-container">
+        <div class="widget-header">
+          <h3>Pomodoro</h3>
+          <button class="widget-toggle" aria-label="Toggle Pomodoro Timer">-</button>
+        </div>
+        <div id="pomodoro-container" class="widget-content glass-panel">
+          <div class="timer-display">
+            <div class="timer-circle-visual">
+              <svg class="timer-progress-ring" viewBox="0 0 100 100">
+                <circle class="background" cx="50" cy="50" r="45" fill="#2c2541"></circle>
+                <circle class="progress" cx="50" cy="50" r="45" fill="none"></circle>
+              </svg>
+            </div>
+            <div class="timer-time">
+              <span id="timer-minutes">25</span>:<span id="timer-seconds">00</span>
+            </div>
+          </div>
+          <div class="timer-controls">
+            <div class="timer-controls-row">
+              <button id="timer-toggle" aria-label="Start/Stop Timer"><i class="fas fa-play"></i></button>
+              <button id="timer-reset" aria-label="Reset Timer"><i class="fas fa-redo"></i></button>
+              <button id="timer-custom" aria-label="Custom Time"><i class="fas fa-clock"></i></button>
+            </div>
+            <select id="timer-mode" aria-label="Timer Mode">
+              <option value="pomodoro">🍅 Pomodoro (25m)</option>
+              <option value="short-break">☕ Short Break (5m)</option>
+              <option value="long-break">🌴 Long Break (15m)</option>
+            </select>
+          </div>
+          <div class="timer-stats">
+            <span id="pomodoro-count">0 Pomodoros</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-container">
+        <div class="widget-header">
+          <h3>Task List</h3>
+          <button class="widget-toggle" aria-label="Toggle Task List">-</button>
+        </div>
+        <div class="widget-content">
+          <div id="task-list-container">
+            <div class="task-input">
+              <input type="text" id="new-task-input" placeholder="Add a new task..." maxlength="100">
+              <button id="add-task-btn" aria-label="Add Task"><i class="fas fa-plus"></i></button>
+            </div>
+            <div class="task-stats">
+              <span id="task-count">0 tasks</span>
+              <span id="completed-count">0 completed</span>
+              <button id="clear-completed-btn" class="clear-completed-btn" aria-label="Clear Completed Tasks"><i class="fas fa-trash"></i> Clear</button>
+            </div>
+            <div id="task-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-container">
+        <div class="widget-header">
+          <h3>Stats Dashboard</h3>
+          <button class="widget-toggle" aria-label="Toggle Stats Dashboard">-</button>
+        </div>
+        <div class="widget-content">
+          <div id="stats-dashboard">
+            <!-- Summary Cards -->
+            <div class="stats-summary">
+              <div class="stat-card">
+                <div class="stat-icon">🍅</div>
+                <div class="stat-content">
+                  <div class="stat-value" id="total-pomodoros">0</div>
+                  <div class="stat-label">Total Pomodoros</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                  <div class="stat-value" id="tasks-completed">0</div>
+                  <div class="stat-label">Tasks Completed</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">😊</div>
+                <div class="stat-content">
+                  <div class="stat-value" id="avg-mood">-</div>
+                  <div class="stat-label">Avg Mood</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Productivity Chart -->
+            <div class="stats-section">
+              <h4>📈 This Week's Progress</h4>
+              <div class="chart-container">
+                <canvas id="productivity-chart" width="300" height="150"></canvas>
+              </div>
+            </div>
+
+            <!-- Task Completion Rate -->
+            <div class="stats-section">
+              <h4>🎯 Task Completion Rate</h4>
+              <div class="completion-rate">
+                <div class="rate-circle">
+                  <div class="rate-value" id="completion-percentage">0%</div>
+                </div>
+                <div class="rate-details">
+                  <div class="rate-stat">
+                    <span id="completed-tasks">0</span> completed
+                  </div>
+                  <div class="rate-stat">
+                    <span id="total-tasks">0</span> total
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="stats-section">
+              <h4>⏰ Recent Activity</h4>
+              <div class="activity-list" id="recent-activity">
+                <div class="activity-item">
+                  <div class="activity-icon">🍅</div>
+                  <div class="activity-text">No recent activity</div>
+                  <div class="activity-time">-</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Export Button -->
+            <div class="stats-actions">
+              <button id="export-stats" class="export-btn">
+                <i class="fas fa-download"></i>
+                Export Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-container">
+        <div class="widget-header">
+          <h3>Mood Journal</h3>
+          <button class="widget-toggle" aria-label="Toggle Mood Journal">-</button>
+        </div>
+        <div id="mood-journal" class="widget-content glass-panel">
+          <div class="mood-selector">
+            <div class="mood-circle-row">
+              <button class="mood-btn" data-mood="great" aria-label="Feeling Great"><i class="fas fa-star"></i></button>
+              <button class="mood-btn" data-mood="good" aria-label="Feeling Good"><i class="fas fa-smile"></i></button>
+              <button class="mood-btn" data-mood="okay" aria-label="Feeling Okay"><i class="fas fa-meh"></i></button>
+            </div>
+            <div class="mood-circle-bottom-row">
+              <button class="mood-btn" data-mood="meh" aria-label="Feeling Meh"><i class="fas fa-frown"></i></button>
+              <button class="mood-btn" data-mood="bad" aria-label="Feeling Bad"><i class="fas fa-sad-tear"></i></button>
+              <button class="mood-btn" data-mood="angry" aria-label="Feeling Angry"><i class="fas fa-angry"></i></button>
+            </div>
+          </div>
+          <div class="mood-input">
+            <textarea id="mood-reflection" placeholder="How are you feeling today?" rows="2" maxlength="200"></textarea>
+            <button id="save-mood" aria-label="Save Mood">Save</button>
+          </div>
+          <div class="mood-history">
+            <h3>Recent Moods</h3>
+            <div id="mood-entries"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-controls">
+        <button id="ambient-toggle" class="ambient-toggle" aria-label="Toggle ambient sound">
+          <i class="fas fa-volume-up"></i>
+          <span>Ambient</span>
+        </button>
+        <button id="keyboard-help-btn" class="keyboard-help-btn" aria-label="Keyboard shortcuts help">
+          <i class="fas fa-keyboard"></i>
+          <span>Shortcuts</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button id="close-settings" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-section-header">Theme</div>
+        <section class="theme-section">
+          <div class="custom-theme-section">
+            <h3>Custom Background</h3>
+            <label for="custom-bg-image">Background Image/GIF:</label>
+            <label class="custom-file-label" tabindex="0">Choose File
+              <input type="file" id="custom-bg-image" accept="image/*,image/gif" style="display:none;">
+            </label>
+            <span id="custom-file-name" style="color:#b7a8f2;font-size:0.98rem;margin-bottom:0.5em;display:block;"></span>
+            <button id="save-custom-theme">Save Background</button>
+            <div id="custom-theme-preview"></div>
+          </div>
+        </section>
+        <div class="settings-section-header">App Preferences</div>
+        <section class="preferences-section">
+          <h2>App Preferences</h2>
+          <label><input type="checkbox" id="toggle-sfx"> Sound Effects</label>
+          <label><input type="checkbox" id="toggle-ambient" checked> Ambient Sound</label>
+          <label><input type="checkbox" id="toggle-music"> Music</label>
+          <label>Default Pomodoro Duration: <input type="number" id="default-pomodoro" min="5" max="60" value="25"> min</label>
+          <label>Default Mood: <select id="default-mood">
+            <option value="great">Great</option>
+            <option value="good">Good</option>
+            <option value="okay">Okay</option>
+            <option value="meh">Meh</option>
+            <option value="bad">Bad</option>
+            <option value="angry">Angry</option>
+          </select></label>
+        </section>
+        <div class="settings-section-header">Accessibility</div>
+        <section class="accessibility-section">
+          <h2>Accessibility</h2>
+          <label>Font Size: <input type="range" id="font-size-slider" min="14" max="24" value="16"> <span id="font-size-value">16</span>px</label>
+          <label><input type="checkbox" id="high-contrast-toggle"> High Contrast Mode</label>
+        </section>
+        <div class="settings-section-header">Data Management</div>
+        <section class="data-section">
+          <h2>Data Management</h2>
+          <button id="export-data">Export Data</button>
+          <button id="import-data">Import Data</button>
+          <button id="clear-data" class="danger">Clear All Data</button>
+        </section>
+        <div class="settings-section-header">About & Help</div>
+        <section class="about-section">
+          <h2>About & Help</h2>
+          <p>MoodByte v1.0</p>
+          <p>Created by wana</p>
+          <a href="#" id="open-help">Keyboard Shortcuts & Help</a>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Snackbar for notifications -->
+  <div id="snackbar"></div>
+
+  <audio id="music" loop>
+    Your browser does not support the audio element.
+  </audio>
+
+  <!-- Sound Effects -->
+  <audio id="sfx-click" preload="auto">
+    <source src="assets/sfx/click.wav" type="audio/wav">
+  </audio>
+  <audio id="sfx-add-note" preload="auto">
+    <source src="assets/sfx/complete.wav" type="audio/wav">
+  </audio>
+  <audio id="sfx-delete-note" preload="auto">
+    <source src="assets/sfx/delete.wav" type="audio/wav">
+  </audio>
+  <audio id="sfx-timer-complete" preload="auto">
+    <source src="assets/sfx/alarm.wav" type="audio/wav">
+  </audio>
+
+  <script src="js/notifications.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/pomodoro.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/mood.js"></script>
+  <script src="js/main.js"></script>
+  <!-- <script src="script.js"></script> -->
+</body>
+</html>

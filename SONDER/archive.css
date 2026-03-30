@@ -1,0 +1,59 @@
+/* SONDER - Archive Styles */
+
+/* Layout */
+.section__inner {
+    max-width: 1200px;
+    /* Wider for archive */
+    margin: 0 auto;
+}
+
+.archive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 1rem 0 4rem;
+}
+
+/* Archive Card Specifics */
+.archive-grid .entry-card {
+    opacity: 0;
+    animation: slideInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    /* Delay is set via JS style attribute */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 200px;
+}
+
+.archive-grid .entry-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border-color: var(--color-accent-soft);
+}
+
+.entry-card__location {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+    margin-bottom: 0.5rem;
+}
+
+.entry-card__text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    flex-grow: 1;
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
