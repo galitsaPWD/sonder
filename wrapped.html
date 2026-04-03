@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-page="wrapped">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>SONDER · your 2026 wrapped</title>
+    <link rel="stylesheet" href="wrapped.css" />
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <meta name="description" content="SONDER Wrapped - Relive your year through the footsteps you left on the map and the songs that defined your journey." />
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Your Year in SONDER" />
+  <meta property="og:description" content="See your year in echoes. A personal retrospective of your memories and melodies on SONDER." />
+  <meta property="og:image" content="https://sonder-map.com/og-wrapped.jpg" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+</head>
+
+<body class="wrapped-body">
+    <!-- Cinematic Noise Overlay -->
+    <div class="noise-overlay"></div>
+
+    <!-- Background Music -->
+    <audio id="wrappedAudio" loop>
+        <source src="assets/wrapped-bg.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- Mute Button -->
+    <button class="wrapped-mute" id="muteBtn" aria-label="Toggle sound">
+        <span class="mute-icon">Sound</span>
+    </button>
+    <button class="wrapped-pause" id="pauseBtn" aria-label="Pause auto-advance">
+        <span class="pause-icon"></span>
+    </button>
+    <button class="wrapped-close" id="wrappedClose" aria-label="Close">×</button>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>gathering your echoes...</p>
+        </div>
+    </div>
+
+    <!-- Start Overlay (For Autoplay) -->
+    <div class="start-overlay hidden" id="startOverlay">
+        <div class="start-content">
+            <h1 class="wrapped-title">ready?</h1>
+            <p>turn up your sound for the full experience</p>
+            <button class="start-btn" id="startBtn">enter</button>
+        </div>
+    </div>
+
+    <!-- Story Progress Bars -->
+    <div class="wrapped-progress" id="wrappedProgress">
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="0"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="1"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="2"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="3"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="4"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="5"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="6"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="7"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="8"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="9"></div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" data-slide="10"></div>
+        </div>
+    </div>
+
+    <!-- Slides Container -->
+    <div class="wrapped-container" id="wrappedContainer">
+        <!-- Dynamic Backgrounds -->
+        <div id="wrappedMusicBg" class="wrapped-music-bg"></div>
+
+
+        <!-- Slide 1: Opening -->
+        <div class="wrapped-slide active" data-slide="0">
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title wrapped-title--large">your year in echoes</h2>
+                <div class="wrapped-year">2026</div>
+                <p class="wrapped-subtitle">a journey through your memories</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Distance Traveled (With Map) -->
+        <div class="wrapped-slide" data-slide="1">
+            <div id="wrappedMapBg" class="wrapped-map-bg"></div>
+            <div class="slide-content slide-content--center slide-content--overlay">
+                <h2 class="wrapped-title">you left traces across</h2>
+                <div class="wrapped-stat" id="distanceStat">0</div>
+                <p class="wrapped-unit">kilometers</p>
+                <p class="wrapped-description">from quiet corners to distant horizons</p>
+            </div>
+        </div>
+
+        <!-- Slide 3: Memory Count -->
+        <div class="wrapped-slide" data-slide="2">
+            <canvas id="memoryVoidCanvas" class="slide-canvas"></canvas>
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title">you dropped</h2>
+                <div class="wrapped-stat" id="memoryStat">0</div>
+                <p class="wrapped-unit">memories into the world</p>
+                <p class="wrapped-description">each one a piece of your soul</p>
+            </div>
+        </div>
+
+        <!-- Slide 4: Most Visited Location -->
+        <div class="wrapped-slide" data-slide="3">
+            <div class="resonance-wave-bg"></div>
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title">you returned here</h2>
+                <div class="wrapped-stat" id="visitStat">0</div>
+                <p class="wrapped-unit">times</p>
+                <div class="wrapped-location" id="topLocation">your favorite place</div>
+                <p class="wrapped-description">this place holds your heart</p>
+            </div>
+        </div>
+
+        <!-- Slide 5: Soul Portrait (Redesigned) -->
+        <div class="wrapped-slide" data-slide="4">
+            <div class="soul-aura-bg"></div>
+            <div class="slide-content slide-content--center soul-portrait-content">
+                <div class="soul-header">
+                    <span class="soul-label">soul portrait</span>
+                    <h2 class="wrapped-title" id="soulArchetype">the observer</h2>
+                </div>
+
+                <div class="wrapped-color-display" id="colorDisplay">
+                    <svg id="colorBlob" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="currentColor"
+                            d="M38,-65.2C48.6,-59.4,56.1,-48.3,64.6,-36.8C73.1,-25.3,82.5,-13.3,83.9,0.8C85.4,14.8,78.8,30.9,69.5,44.9C60.2,58.8,48.2,70.5,34.4,75.9C20.6,81.4,4.9,80.5,-10.1,76.5C-25,72.4,-39.2,65.2,-50.2,55.1C-61.1,45,-68.8,32,-74.6,18.1C-80.4,4.2,-84.3,-10.7,-80.4,-24.1C-76.4,-37.6,-64.7,-49.6,-51.7,-54.5C-38.6,-59.4,-24.3,-57.2,-11.1,-62.4C2.2,-67.7,14.3,-80.4,26.5,-81.4C38.7,-82.4,51,-71.7,38,-65.2Z"
+                            transform="translate(100 100)" />
+                    </svg>
+                    <div class="color-swatch soul-orb"></div>
+                </div>
+
+                <div class="soul-analysis">
+                    <div class="analysis-line"></div>
+                    <p class="wrapped-description" id="colorMeaning">your personality analysis goes here...</p>
+                </div>
+            </div>
+        </div>
+        <!-- Slide 6: Top Song -->
+        <div class="wrapped-slide" data-slide="5">
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title">this song carried you</h2>
+                <div class="wrapped-song-card" id="topSong">
+                    <div class="song-artwork" id="songArtwork"></div>
+                    <div class="song-title" id="songTitle">Unknown Song</div>
+                    <div class="song-artist" id="songArtist">Unknown Artist</div>
+                </div>
+                <p class="wrapped-description">through the highs and lows</p>
+            </div>
+        </div>
+
+        <!-- Slide 7: Longest Entry -->
+        <div class="wrapped-slide" data-slide="6">
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title">your most heartfelt moment</h2>
+                <div class="wrapped-entry-preview" id="longestEntry">
+                    <p class="entry-text">...</p>
+                </div>
+                <div class="wrapped-word-count" id="wordCount">0 words</div>
+                <p class="wrapped-description">you had so much to say</p>
+            </div>
+        </div>
+
+        <!-- Slide 8: First & Last -->
+        <div class="wrapped-slide" data-slide="7">
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title">where you started → where you are now</h2>
+                <div class="wrapped-comparison">
+                    <div class="comparison-card">
+                        <div class="comparison-label">first</div>
+                        <div class="comparison-text" id="firstEntry">...</div>
+                        <div class="comparison-date" id="firstDate">Jan 2026</div>
+                    </div>
+                    <div class="comparison-arrow">→</div>
+                    <div class="comparison-card">
+                        <div class="comparison-label">latest</div>
+                        <div class="comparison-text" id="lastEntry">...</div>
+                        <div class="comparison-date" id="lastDate">Jan 2026</div>
+                    </div>
+                </div>
+                <p class="wrapped-description">look how far you've come</p>
+            </div>
+        </div>
+
+        <!-- Slide 9: View Count -->
+        <div class="wrapped-slide" data-slide="8">
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title">your memories were viewed</h2>
+                <div class="wrapped-stat" id="viewStat">0</div>
+                <p class="wrapped-unit">times</p>
+                <p class="wrapped-description">strangers discovered your echoes</p>
+            </div>
+        </div>
+
+        <div class="wrapped-slide" data-slide="9">
+            <div class="slide-content slide-content--center">
+                <div id="spiritContainer" class="spirit-visual">
+                    <!-- Three.js Canvas will be injected here -->
+                </div>
+
+                <div class="spirit-content">
+                    <p class="spirit-nature" id="spiritNature">the seed</p>
+                    <h2 class="spirit-name" id="spiritName">The Silent Presence</h2>
+                    <p class="wrapped-description" id="spiritDescription">a quiet journey, deeply felt.</p>
+                    <p class="spirit-traits" id="spiritTraits">latent • infinite • still</p>
+                </div>
+
+                <button class="spirit-toggle-btn" id="spiritToggle" aria-label="Toggle text visibility">
+                    <span class="spirit-toggle-icon"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Slide 11: Closing -->
+        <div class="wrapped-slide" data-slide="10">
+            <div class="slide-content slide-content--center">
+                <h2 class="wrapped-title wrapped-title--large">thank you for existing</h2>
+                <p class="wrapped-subtitle">your presence in this world matters</p>
+                <div class="wrapped-actions">
+                    <button class="wrapped-btn wrapped-btn--primary" id="shareWrapped">share your wrapped</button>
+                    <button class="wrapped-btn wrapped-btn--secondary" id="returnHome">return to sonder</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+    <script src="wrapped.js"></script>
+</body>
+
+</html>

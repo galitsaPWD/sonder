@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en" data-page="admin">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SONDER · overseer</title>
+    <meta name="description" content="SONDER Overseer - Administrative moderation panel for managing map entries and protecting the community." />
+    <meta name="robots" content="noindex, nofollow" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="SONDER Overseer" />
+    <meta property="og:description" content="Management portal for the SONDER map." />
+    
+    <link rel="stylesheet" href="sonder.css" />
+    <link rel="stylesheet" href="admin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="supabase-init.js"></script>
+    <script src="config.js"></script>
+    <script src="theme.js"></script>
+    <script src="page-logic.js"></script>
+</head>
+
+<body>
+    <div id="loadingOverlay">RESTORING AUTHORITY...</div>
+    <div id="lockedOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center; color:var(--admin-accent); font-family:monospace; letter-spacing:0.2rem; font-size:0.8rem;">
+        [ ACCESS RESTRICTED ]
+    </div>
+
+    <div class="admin-layout">
+        <div class="admin-shelf">
+            <header class="admin-header">
+                <div class="admin-title">SONDER · OVERSEER</div>
+                <div class="header-actions">
+                    <button class="btn-tools-toggle" id="toolsToggleBtn" onclick="toggleMobileTools()"
+                        title="Toggle Dashboard Tools">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
+            </header>
+
+            <div id="mobileToolsPanel" class="mobile-tools-panel">
+                <div class="admin-stats-shelf" id="adminStats">
+                    <div class="stat-pill"><span class="stat-label">Live Souls:</span> <span id="statLive"
+                            class="stat-value pulse">...</span></div>
+                    <div class="stat-pill"><span class="stat-label">Total Visits:</span> <span id="statVisits"
+                            class="stat-value">...</span></div>
+                    <div class="stat-pill"><span class="stat-label">Last 24h:</span> <span id="stat24h"
+                            class="stat-value">...</span></div>
+                    <div class="stat-pill"><span class="stat-label">Last 7d:</span> <span id="stat7d"
+                            class="stat-value">...</span></div>
+                    <div class="stat-pill"><span class="stat-label">Total Users:</span> <span id="statTotalUsers"
+                            class="stat-value">...</span></div>
+                    <button class="btn-analytics" id="analyticsBtn" onclick="openAnalytics()">Show Graph</button>
+                    <div id="statRefreshTime"
+                        style="font-size: 0.5rem; color: var(--admin-muted); opacity: 0.5; margin-left: auto;">Last
+                        Sync: Never</div>
+                </div>
+
+                <div class="admin-toolbar">
+                    <!-- Main Search Row -->
+                    <div class="toolbar-main-row">
+                        <div class="search-group">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="adminSearch" class="search-input"
+                                placeholder="Search by content or ID...">
+                        </div>
+                        
+                        <select id="adminFilter" class="filter-select">
+                            <option value="all">All content</option>
+                            <option value="media">With images</option>
+                            <option value="text">Text only</option>
+                            <option value="songs">With songs</option>
+                        </select>
+                        
+                        <button class="btn-toggle-filters" onclick="toggleAdvancedFilters()">
+                            <span id="filterToggleIcon">▼</span> Advanced Filters
+                        </button>
+                        
+                        <div id="resultsCount"
+                            style="font-size: 0.7rem; color: var(--admin-muted); margin-left: auto; font-weight: 600;">
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Filters Row (Collapsible) -->
+                    <div id="advancedFiltersRow" class="advanced-filters-row" style="display: none;">
+                        <select id="colorFilter" class="filter-select">
+                            <option value="all">All colors</option>
+                            <option value="red">Red</option>
+                            <option value="orange">Orange</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="green">Green</option>
+                            <option value="blue">Blue</option>
+                            <option value="purple">Purple</option>
+                            <option value="pink">Pink</option>
+                        </select>
+                        
+                        <input type="text" id="userIdFilter" class="filter-input" placeholder="User ID...">
+                        
+                        <div class="date-range-group">
+                            <input type="date" id="dateFrom" class="filter-input date-input">
+                            <span style="color: var(--admin-muted); font-size: 0.7rem;">to</span>
+                            <input type="date" id="dateTo" class="filter-input date-input">
+                        </div>
+                        
+                        <select id="sortBy" class="filter-select">
+                            <option value="date-desc">Newest first</option>
+                            <option value="date-asc">Oldest first</option>
+                            <option value="views-desc">Most views</option>
+                            <option value="views-asc">Least views</option>
+                            <option value="likes-desc">Most likes</option>
+                        </select>
+                        
+                        <button class="btn-filter-reset" onclick="resetFilters()">Clear All</button>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="admin-nav">
+                <div class="nav-tabs">
+                    <div class="nav-item active" data-tab="dashboard">
+                        Dashboard
+                    </div>
+                    <div class="nav-item" data-tab="reports">
+                        Reports <span class="badge" id="reportsBadge">0</span>
+                    </div>
+                    <div class="nav-item" data-tab="entries">
+                        Records <span class="badge" id="entriesBadge">0</span>
+                    </div>
+                    <div class="nav-item" data-tab="banned">
+                        Banned <span class="badge" id="bannedBadge">0</span>
+                    </div>
+                    <div class="nav-item" data-tab="feedback">
+                        Feedback <span class="badge" id="feedbackBadge">0</span>
+                    </div>
+                </div>
+                <div id="contextActions">
+                    <button class="btn-mass" id="dismissAllBtn">Clear All Reports</button>
+                </div>
+            </nav>
+            
+            <!-- Bulk Actions Bar (Hidden by default) -->
+            <div id="bulkActionsBar" class="bulk-actions-bar" style="display: none;">
+                <div class="bulk-actions-left">
+                    <span id="bulkSelectedCount">0</span> selected
+                    <button class="btn-bulk-action" onclick="selectAll()">Select All</button>
+                    <button class="btn-bulk-action" onclick="deselectAll()">Deselect All</button>
+                </div>
+                <div class="bulk-actions-right">
+                    <button class="btn-bulk-action btn-bulk-dismiss" onclick="bulkDismiss()">Dismiss Selected</button>
+                    <button class="btn-bulk-action btn-bulk-purge" onclick="bulkPurge()">Purge Selected</button>
+                </div>
+            </div>
+        </div>
+
+        <main class="admin-content">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="dashboard-container">
+                <!-- KPI Cards -->
+                <div class="dashboard-kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon">📝</div>
+                        <div class="kpi-label">Total Memories</div>
+                        <div class="kpi-value" id="kpiTotalEntries">...</div>
+                        <div class="kpi-trend neutral">Loading...</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">👥</div>
+                        <div class="kpi-label">Active Users</div>
+                        <div class="kpi-value" id="kpiActiveUsers">...</div>
+                        <div class="kpi-trend neutral">Loading...</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">👁️</div>
+                        <div class="kpi-label">Total Views</div>
+                        <div class="kpi-value" id="kpiTotalViews">...</div>
+                        <div class="kpi-trend neutral">Loading...</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">⚠️</div>
+                        <div class="kpi-label">Pending Reports</div>
+                        <div class="kpi-value" id="kpiReports">...</div>
+                        <div class="kpi-trend neutral">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Activity Heatmap -->
+                <div class="dashboard-section">
+                    <h3 class="section-title">30-Day Activity</h3>
+                    <div id="activityHeatmap" class="heatmap-container">
+                        <!-- Heatmap populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="dashboard-charts-row">
+                    <div class="chart-container">
+                        <h3 class="section-title">Content Distribution</h3>
+                        <canvas id="contentPieChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 class="section-title">User Growth (30 Days)</h3>
+                        <canvas id="userGrowthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="dashboard-section">
+                    <h3 class="section-title">Recent Activity</h3>
+                    <div id="activityFeed" class="activity-feed">
+                        <!-- Feed populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Grid View (existing) -->
+            <div id="gridView" class="data-grid" style="display: none;">
+                <!-- Cards populated by JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Comment Moderation Modal -->
+    <div id="commentModModal" class="admin-modal" hidden>
+        <div class="admin-modal-content">
+            <header class="modal-header">
+                <h3>Manage Comments</h3>
+                <button class="modal-close" onclick="closeCommentMod()">✕</button>
+            </header>
+            <div id="commentModList" class="modal-list">
+                <!-- Comments populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="admin-modal" hidden>
+        <div class="admin-modal-content admin-modal-content--large">
+            <header class="modal-header">
+                <h3>Sonder Analytics (Last 30 Days)</h3>
+                <button class="modal-close" onclick="closeAnalytics()">✕</button>
+            </header>
+            <div class="analytics-canvas-container">
+                <canvas id="analyticsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+        // --- 0. Utilities & UI logic ---
+        window._escapeHtmlLocal = function (text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        };
+        const escapeHtml = window.escapeHtml || window._escapeHtmlLocal;
+
+        window.toggleMobileTools = () => {
+            const panel = document.getElementById('mobileToolsPanel');
+            const btn = document.getElementById('toolsToggleBtn');
+            if (panel) panel.classList.toggle('active');
+            if (btn) btn.classList.toggle('active');
+        };
+
+        let currentTab = 'reports';
+        let allData = { reports: [], entries: [], banned: [], feedback: [] };
+        let searchQuery = '';
+        let filterType = 'all';
+
+        // --- 0. Utils ---
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // --- 1. Boot Logic (Declaration) ---
+        async function boot() {
+            const { data: { session } } = await window.supabase.auth.getSession();
+            
+            if (!session) {
+                console.log('No active session. Redirecting...');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Session verified - Unlock UI
+            const locked = document.getElementById('lockedOverlay');
+            if (locked) locked.style.display = 'none';
+            
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
+            
+            // Load dashboard first (default tab)
+            loadDashboard();
+            
+            refresh(true);
+            fetchStats();
+            initPresence();
+            initRealtimeStats();
+        }
+
+        // --- 2. Nav & Search Logic ---
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+                currentTab = el.dataset.tab;
+
+                // Show/hide views
+                const dashboardView = document.getElementById('dashboardView');
+                const gridView = document.getElementById('gridView');
+                
+                if (currentTab === 'dashboard') {
+                    if (dashboardView) dashboardView.style.display = 'flex';
+                    if (gridView) gridView.style.display = 'none';
+                    loadDashboard(); // Load dashboard data
+                } else {
+                    if (dashboardView) dashboardView.style.display = 'none';
+                    if (gridView) gridView.style.display = 'grid';
+                }
+
+                document.getElementById('contextActions').style.visibility = (currentTab === 'reports') ? 'visible' : 'hidden';
+                render();
+                if (allData[currentTab] && allData[currentTab].length === 0) refresh();
+            });
+        });
+
+        const debouncedRender = debounce(() => render(), 300);
+
+        document.getElementById('adminSearch').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase();
+            debouncedRender();
+        });
+
+        document.getElementById('adminFilter').addEventListener('change', (e) => {
+            filterType = e.target.value;
+            render(); // Immediate for dropdown
+        });
+        
+        // Advanced filter listeners
+        document.getElementById('colorFilter').addEventListener('change', render);
+        document.getElementById('userIdFilter').addEventListener('input', render);
+        document.getElementById('dateFrom').addEventListener('change', render);
+        document.getElementById('dateTo').addEventListener('change', render);
+        document.getElementById('sortBy').addEventListener('change', render);
+        
+        window.toggleAdvancedFilters = function() {
+            const advRow = document.getElementById('advancedFiltersRow');
+            const icon = document.getElementById('filterToggleIcon');
+            
+            if (advRow.style.display === 'none') {
+                advRow.style.display = 'flex';
+                icon.textContent = '▲';
+            } else {
+                advRow.style.display = 'none';
+                icon.textContent = '▼';
+            }
+        };
+        
+        window.resetFilters = function() {
+            document.getElementById('adminSearch').value = '';
+            document.getElementById('adminFilter').value = 'all';
+            document.getElementById('colorFilter').value = 'all';
+            document.getElementById('userIdFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('sortBy').value = 'date-desc';
+            searchQuery = '';
+            filterType = 'all';
+            render();
+        };
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await window.supabase.auth.signOut();
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('dismissAllBtn').addEventListener('click', async () => {
+            if (!confirm('Dismiss ALL active reports? This cannot be undone.')) return;
+            const { error } = await window.supabase.from('reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            if (!error) refresh(true);
+        });
+
+        // --- KEYBOARD SHORTCUTS ---
+        document.addEventListener('keydown', (e) => {
+            // Ignore if typing in input/textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                // Allow Escape to clear search
+                if (e.key === 'Escape') {
+                    e.target.blur();
+                    if (e.target.id === 'adminSearch') {
+                        e.target.value = '';
+                        searchQuery = '';
+                        render();
+                    }
+                }
+                return;
+            }
+            
+            // Tab navigation (1-5)
+            if (e.key >= '1' && e.key <= '5') {
+                const tabs = ['dashboard', 'reports', 'entries', 'banned', 'feedback'];
+                const tabIndex = parseInt(e.key) - 1; // Subtract 1 to get 0-based index
+                if (tabs[tabIndex]) {
+                    const tabEl = document.querySelector(`[data-tab="${tabs[tabIndex]}"]`);
+                    if (tabEl) tabEl.click();
+                }
+            }
+            
+            // / = Focus search
+            else if (e.key === '/') {
+                e.preventDefault();
+                document.getElementById('adminSearch').focus();
+            }
+            
+            // Esc = Clear search / Close modals
+            else if (e.key === 'Escape') {
+                document.getElementById('adminSearch').value = '';
+                searchQuery = '';
+                render();
+                
+                // Close any open modals
+                document.querySelectorAll('[hidden]').forEach(modal => {
+                    if (!modal.hasAttribute('hidden')) modal.setAttribute('hidden', '');
+                });
+            }
+            
+            // R = Refresh
+            else if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                refresh(true);
+            }
+            
+            // ? = Show help overlay
+            else if (e.key === '?') {
+                showKeyboardHelp();
+            }
+        });
+        
+        function showKeyboardHelp() {
+            const helpModal = document.createElement('div');
+            helpModal.className = 'keyboard-help-modal';
+            helpModal.innerHTML = `
+                <div class="keyboard-help-content">
+                    <h2>⌨️ Keyboard Shortcuts</h2>
+                    <div class="keyboard-help-grid">
+                        <div class="keyboard-help-section">
+                            <h3>Navigation</h3>
+                            <div class="keyboard-shortcut"><kbd>1</kbd> Dashboard</div>
+                            <div class="keyboard-shortcut"><kbd>2</kbd> Reports</div>
+                            <div class="keyboard-shortcut"><kbd>3</kbd> Records</div>
+                            <div class="keyboard-shortcut"><kbd>4</kbd> Banned</div>
+                            <div class="keyboard-shortcut"><kbd>5</kbd> Feedback</div>
+                        </div>
+                        <div class="keyboard-help-section">
+                            <h3>Actions</h3>
+                            <div class="keyboard-shortcut"><kbd>/</kbd> Focus Search</div>
+                            <div class="keyboard-shortcut"><kbd>Esc</kbd> Clear / Close</div>
+                            <div class="keyboard-shortcut"><kbd>R</kbd> Refresh Data</div>
+                            <div class="keyboard-shortcut"><kbd>?</kbd> Show This Help</div>
+                        </div>
+                    </div>
+                    <button class="btn-close-help" onclick="this.closest('.keyboard-help-modal').remove()">Close</button>
+                </div>
+            `;
+            document.body.appendChild(helpModal);
+            
+            // Close on click outside
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) helpModal.remove();
+            });
+            
+            // Close on Escape
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    helpModal.remove();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+            document.addEventListener('keydown', escHandler);
+        }
+
+
+        // --- 3. Data Sync ---
+        async function refresh(full = false) {
+            if (full) {
+                // Fetch counts and reports
+                const { data: rData } = await window.supabase.from('reports').select('id, entry_id, category, reason, timestamp, user_id, entry:entries(id, text, color, user_id, timestamp)').order('timestamp', { ascending: false });
+                const { count: eCount } = await window.supabase.from('entries').select('*', { count: 'exact', head: true });
+                const { count: bCount } = await window.supabase.from('banned_users').select('*', { count: 'exact', head: true });
+                const { count: fCount } = await window.supabase.from('site_feedback').select('*', { count: 'exact', head: true });
+
+                allData.reports = rData || [];
+                const reportsBadge = document.getElementById('reportsBadge');
+                const entriesBadge = document.getElementById('entriesBadge');
+                const bannedBadge = document.getElementById('bannedBadge');
+                const feedbackBadge = document.getElementById('feedbackBadge');
+
+                if (reportsBadge) reportsBadge.textContent = allData.reports.length;
+                if (entriesBadge) entriesBadge.textContent = eCount || 0;
+                if (bannedBadge) bannedBadge.textContent = bCount || 0;
+                if (feedbackBadge) feedbackBadge.textContent = fCount || 0;
+
+                console.log(`Admin Sync: Reports(${allData.reports.length}) Records(${eCount || 0}) Banned(${bCount || 0}) Feedback(${fCount || 0})`);
+            }
+
+            if (currentTab === 'entries' || full) {
+                const { data } = await window.supabase.from('entries').select('id, text, color, timestamp, user_id, view_count, reaction_count, comment_count, image, thumbnail, song, song_title, artist').order('timestamp', { ascending: false }).limit(60);
+                allData.entries = data || [];
+            }
+
+            if (currentTab === 'banned' || full) {
+                const { data } = await window.supabase.from('banned_users').select('user_id, reason, created_at').order('created_at', { ascending: false });
+                allData.banned = data || [];
+            }
+
+            if (currentTab === 'feedback' || full) {
+                const { data } = await window.supabase.from('site_feedback').select('id, user_id, category, message, timestamp').order('timestamp', { ascending: false });
+                allData.feedback = data || [];
+            }
+
+            render();
+        }
+
+        // --- Real-time Logic ---
+        function initPresence() {
+            const channel = window.supabase.channel('sonder-presence');
+            channel
+                .on('presence', { event: 'sync' }, () => {
+                    const state = channel.presenceState();
+                    const liveCount = Object.keys(state).length;
+                    const statLive = document.getElementById('statLive');
+                    if (statLive) statLive.textContent = liveCount;
+                })
+                .subscribe(async (status) => {
+                    if (status === 'SUBSCRIBED') {
+                        await channel.track({ online_at: new Date().toISOString(), role: 'admin' });
+                    }
+                });
+        }
+
+        function initRealtimeStats() {
+            // Listen to entries, reports, bans, and feedback for badge/data updates
+            const tables = ['entries', 'reports', 'banned_users', 'site_feedback'];
+            tables.forEach(table => {
+                window.supabase
+                    .channel(`admin-${table}-listener`)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: table }, () => {
+                        console.log(`Admin: Real-time update from ${table}`);
+                        fetchStats();
+                        refresh(true);
+                    })
+                    .subscribe();
+            });
+        }
+
+        async function fetchStats() {
+            const yesterday = new Date(Date.now() - 86400000).toISOString();
+            const weekAgo = new Date(Date.now() - 604800000).toISOString();
+
+            console.log('Admin: Fetching fresh stats...');
+            let count24h = '...', count7d = '...', uniqueUsers = '...', visitCount = '...';
+
+            // 1. Last 24h
+            try {
+                const res = await window.supabase.from('entries').select('*', { count: 'exact', head: true }).gt('timestamp', yesterday);
+                if (res.error) throw res.error;
+                count24h = res.count || 0;
+                console.log(`Admin: 24h Count = ${count24h}`);
+            } catch (e) {
+                console.error('Supabase: 24h Error:', e);
+                count24h = 'ERR';
+            }
+
+            // 2. Last 7d
+            try {
+                const res = await window.supabase.from('entries').select('*', { count: 'exact', head: true }).gt('timestamp', weekAgo);
+                if (res.error) throw res.error;
+                count7d = res.count || 0;
+                console.log(`Admin: 7d Count = ${count7d}`);
+            } catch (e) {
+                console.error('Supabase: 7d Error:', e);
+                count7d = 'ERR';
+            }
+
+            // 3. Unique Users
+            try {
+                const res = await window.supabase.from('entries').select('user_id').not('user_id', 'is', null);
+                if (res.error) throw res.error;
+                uniqueUsers = new Set(res.data?.map(u => u.user_id)).size;
+                console.log(`Admin: User Count = ${uniqueUsers}`);
+            } catch (e) {
+                console.error('Supabase: User Error:', e);
+                uniqueUsers = 'ERR';
+            }
+
+            // 4. Visit Count
+            try {
+                const res = await window.supabase.from('site_visits').select('*', { count: 'exact', head: true });
+                if (res.error) throw res.error;
+                visitCount = res.count || 0;
+                console.log(`Admin: Visit Count = ${visitCount}`);
+            } catch (e) {
+                console.warn('Supabase: Visit Error:', e);
+                const statVisitsElement = document.getElementById('statVisits');
+                if (statVisitsElement) {
+                    statVisitsElement.style.opacity = '0.5';
+                    statVisitsElement.title = 'Table missing? ' + (e.message || '');
+                }
+                visitCount = 'ERR';
+            }
+
+            // Final UI Update
+            const s24 = document.getElementById('stat24h');
+            const s7 = document.getElementById('stat7d');
+            const stu = document.getElementById('statTotalUsers');
+            const sv = document.getElementById('statVisits');
+            const stm = document.getElementById('statRefreshTime');
+
+            if (s24) s24.textContent = count24h;
+            if (s7) s7.textContent = count7d;
+            if (stu) stu.textContent = uniqueUsers;
+            if (sv) sv.textContent = visitCount;
+            if (stm) stm.textContent = `Last Sync: ${new Date().toLocaleTimeString()}`;
+        }
+
+        // --- Analytics (Graph) ---
+        let analyticsChart = null;
+
+        window.openAnalytics = async () => {
+            const modal = document.getElementById('analyticsModal');
+            if (modal) {
+                modal.hidden = false;
+                modal.removeAttribute('hidden');
+                await loadChartData();
+            }
+        };
+
+        window.closeAnalytics = () => {
+            const modal = document.getElementById('analyticsModal');
+            if (modal) modal.hidden = true;
+        };
+
+        async function loadChartData() {
+            const thirtyDaysAgo = new Date(Date.now() - (30 * 24 * 60 * 60 * 1000)).toISOString();
+            let entriesData = [];
+            let visitsData = [];
+
+            try {
+                const res = await window.supabase.from('entries').select('timestamp').gt('timestamp', thirtyDaysAgo).order('timestamp', { ascending: true });
+                if (res.data) entriesData = res.data;
+            } catch (e) { console.error("Error fetching entries for graph:", e); }
+
+            try {
+                const res = await window.supabase.from('site_visits').select('timestamp').gt('timestamp', thirtyDaysAgo).order('timestamp', { ascending: true });
+                if (res.error) throw res.error;
+                if (res.data) visitsData = res.data;
+            } catch (e) { console.warn("Visits data missing/error for graph:", e.message); }
+
+            const bucketsEntries = {};
+            const bucketsVisits = {};
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = d.toISOString().split('T')[0];
+                bucketsEntries[key] = 0;
+                bucketsVisits[key] = 0;
+            }
+
+            entriesData.forEach(item => {
+                const dateKey = item.timestamp.split('T')[0];
+                if (bucketsEntries[dateKey] !== undefined) bucketsEntries[dateKey]++;
+            });
+
+            visitsData.forEach(item => {
+                const dateKey = item.timestamp.split('T')[0];
+                if (bucketsVisits[dateKey] !== undefined) bucketsVisits[dateKey]++;
+            });
+
+            const labels = Object.keys(bucketsEntries).map(d => {
+                const [y, m, day] = d.split('-');
+                return `${m}/${day}`;
+            });
+            const valuesEntries = Object.values(bucketsEntries);
+            const valuesVisits = Object.values(bucketsVisits);
+
+            const canvas = document.getElementById('analyticsChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (analyticsChart) analyticsChart.destroy();
+
+            Chart.defaults.color = '#888';
+            Chart.defaults.borderColor = 'rgba(128,128,128,0.1)';
+
+            analyticsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Memories Planted',
+                            data: valuesEntries,
+                            borderColor: '#a29bfe',
+                            backgroundColor: 'rgba(162, 155, 254, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#a29bfe',
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Site Visits',
+                            data: valuesVisits,
+                            borderColor: '#6edff6',
+                            backgroundColor: 'rgba(110, 223, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#6edff6',
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: { size: 10, family: 'monospace' },
+                                boxWidth: 10
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#222' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- 4. Render Engine ---
+        function render() {
+            const grid = document.getElementById('gridView');
+            if (!grid) return;
+
+            if (currentTab === 'banned') {
+                renderBanned(grid);
+                return;
+            }
+
+            if (currentTab === 'feedback') {
+                renderFeedback(grid);
+                return;
+            }
+
+            const source = currentTab === 'reports' ? allData.reports : allData.entries;
+
+            let filtered = source.filter(item => {
+                const entry = currentTab === 'reports' ? item.entry : item;
+                if (!entry && currentTab === 'reports') return true;
+                if (!entry) return false;
+
+                // Search filter
+                const matchesSearch = (entry.text?.toLowerCase().includes(searchQuery) || entry.id.includes(searchQuery));
+                
+                // Content type filter
+                const matchesFilter = filterType === 'all'
+                    || (filterType === 'media' && (entry.image || entry.thumbnail))
+                    || (filterType === 'text' && !(entry.image || entry.thumbnail))
+                    || (filterType === 'songs' && (entry.song || entry.song_title || entry.artist));
+                
+                // Color filter
+                const colorFilter = document.getElementById('colorFilter').value;
+                const matchesColor = colorFilter === 'all' || entry.color === colorFilter;
+                
+                // User ID filter
+                const userIdFilter = document.getElementById('userIdFilter').value.toLowerCase();
+                const matchesUserId = !userIdFilter || entry.user_id?.toLowerCase().includes(userIdFilter);
+                
+                // Date range filter
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+                let matchesDateRange = true;
+                
+                if (dateFrom || dateTo) {
+                    const entryDate = new Date(entry.timestamp || item.timestamp);
+                    if (dateFrom) matchesDateRange = matchesDateRange && entryDate >= new Date(dateFrom);
+                    if (dateTo) matchesDateRange = matchesDateRange && entryDate <= new Date(dateTo + 'T23:59:59');
+                }
+
+                return matchesSearch && matchesFilter && matchesColor && matchesUserId && matchesDateRange;
+            });
+            
+            // Sorting
+            const sortBy = document.getElementById('sortBy').value;
+            filtered.sort((a, b) => {
+                const entryA = currentTab === 'reports' ? a.entry : a;
+                const entryB = currentTab === 'reports' ? b.entry : b;
+                
+                switch(sortBy) {
+                    case 'date-desc':
+                        return new Date(entryB?.timestamp || b.timestamp) - new Date(entryA?.timestamp || a.timestamp);
+                    case 'date-asc':
+                        return new Date(entryA?.timestamp || a.timestamp) - new Date(entryB?.timestamp || b.timestamp);
+                    case 'views-desc':
+                        return (entryB?.view_count || 0) - (entryA?.view_count || 0);
+                    case 'views-asc':
+                        return (entryA?.view_count || 0) - (entryB?.view_count || 0);
+                    case 'likes-desc':
+                        return (entryB?.reaction_count || 0) - (entryA?.reaction_count || 0);
+                    default:
+                        return 0;
+                }
+            });
+
+            const resultsCount = document.getElementById('resultsCount');
+            if (resultsCount) resultsCount.textContent = `${filtered.length} RESULTS`;
+            grid.innerHTML = filtered.length ? '' : '<div class="empty-view">NO RECORDS MATCH THE SEARCH CRITERIA.</div>';
+
+            filtered.forEach(item => {
+                const entry = currentTab === 'reports' ? item.entry : item;
+                const card = document.createElement('div');
+                card.className = 'data-card';
+
+                const cardType = currentTab === 'reports' ? 'Priority Case' : (escapeHtml(entry?.color || 'unknown')) + ' node';
+                const reportNotice = (currentTab === 'reports') ? `<div class="report-notice"><span>Report Reason:</span> ${escapeHtml(item.reason)}</div>` : '';
+                const memoryImage = (entry?.image || entry?.thumbnail) ? `<img src="${escapeHtml(entry.image || entry.thumbnail)}" alt="Memory media" class="card-media" onclick="window.open(this.src)">` : '';
+                const memoryText = entry ? `"${escapeHtml(entry.text)}"` : '<span style="color:var(--admin-danger)">[ERROR] TARGET MEMORY HAS BEEN PURGED.</span>';
+                
+                // Music marker
+                const hasSong = entry && (entry.song || entry.song_title || entry.artist);
+                const musicMarker = hasSong ? '<span class="music-marker" title="Contains music">🎵</span>' : '';
+
+                const actionTray = currentTab === 'reports' ? `
+                    <button class="btn-act btn-act--secondary" onclick="dismissReport('${escapeHtml(item.id)}')">Dismiss</button>
+                    ${entry ? `<button class="btn-act btn-act--primary" onclick="viewOnMap(${parseFloat(entry.lat)}, ${parseFloat(entry.lng)})">Inspect</button>` : ''}
+                    <button class="btn-act btn-act--danger" onclick="deleteEntry('${escapeHtml(entry?.id || '')}', '${escapeHtml(item.id)}')">Purge</button>
+                ` : `
+                    <button class="btn-act btn-act--secondary" onclick="viewOnMap(${parseFloat(entry?.lat || 0)}, ${parseFloat(entry?.lng || 1)})">Locate</button>
+                    <button class="btn-act btn-act--secondary-dim" onclick="banUser('${escapeHtml(entry?.user_id || '')}')" title="Ban User ID">🚫</button>
+                    <button class="btn-act btn-act--danger" onclick="deleteEntry('${escapeHtml(entry?.id || '')}')">Purge</button>
+                `;
+
+                card.innerHTML = `
+                    <input type="checkbox" class="card-checkbox" data-id="${escapeHtml(item.id)}" data-entry-id="${escapeHtml(entry?.id || '')}" onchange="updateBulkSelection()">
+                    <div class="card-header">
+                        <span class="card-type">${cardType} ${musicMarker}</span>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <span style="font-size: 0.6rem; color: var(--admin-muted); opacity:0.5;">ID: ${entry?.id ? escapeHtml(entry.id.substring(0, 8)) : 'GONE'}</span>
+                            <span style="font-size: 0.5rem; color: var(--admin-muted); opacity:0.3;">UID: ${entry?.user_id ? escapeHtml(entry.user_id.substring(0, 12)) : '???'}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        ${reportNotice}
+                        ${memoryImage}
+                        <div class="card-content-box">${memoryText}</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="meta-group">
+                            <div class="meta-item" title="Views">👁️ ${parseInt(entry?.view_count || 0)}</div>
+                            <div class="meta-item" title="Likes">❤️ ${parseInt(entry?.reaction_count || 0)}</div>
+                            <div class="meta-item" title="Comments" style="cursor:pointer; color:var(--admin-accent);" onclick="manageComments('${escapeHtml(entry?.id || '')}')">💬 ${parseInt(entry?.comment_count || 0)}</div>
+                            <div class="meta-item">🗓️ ${escapeHtml(new Date(entry?.timestamp || item.timestamp).toLocaleDateString())}</div>
+                        </div>
+                    </div>
+                    <div class="action-tray">${actionTray}</div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // GSAP Entrance Animation
+            if (window.gsap) {
+                gsap.from('.data-card', {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.4,
+                    stagger: 0.05,
+                    ease: 'power2.out',
+                    clearProps: 'all'
+                });
+            }
+        }
+
+        function renderBanned(grid) {
+            grid.innerHTML = allData.banned.length ? '' : '<div class="empty-view">THE VOID IS CLEAN. NO ACTIVE BANS.</div>';
+            allData.banned.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                card.innerHTML = `
+                    <div class="card-header"><span class="card-type">Sanctioned User</span></div>
+                    <div class="card-body">
+                        <div style="font-family: monospace; font-size: 0.8rem; color: var(--admin-danger); word-break: break-all;">${user.user_id}</div>
+                        <div style="font-size: 0.7rem; color: var(--admin-muted); margin-top: 1rem;">Suspended on: ${new Date(user.created_at).toLocaleString()}</div>
+                    </div>
+                    <div class="action-tray">
+                        <button class="btn-act btn-act--primary" onclick="unbanUser('${user.user_id}')">Lift Sanction (Unban)</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // GSAP Entrance Animation
+            if (window.gsap) {
+                gsap.from('.data-card', {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.4,
+                    stagger: 0.05,
+                    ease: 'power2.out',
+                    clearProps: 'all'
+                });
+            }
+        }
+
+        function renderFeedback(grid) {
+            grid.innerHTML = allData.feedback.length ? '' : '<div class="empty-view">THE VOID IS SILENT. NO ECHOES YET.</div>';
+            allData.feedback.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="card-type">${item.category || 'Feedback'}</span>
+                        <span style="font-size: 0.5rem; color: var(--admin-muted); opacity:0.3;">UID: ${item.user_id ? item.user_id.substring(0, 12) : '???'}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-content-box" style="white-space: pre-wrap;">"${escapeHtml(item.message)}"</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="meta-group">
+                            <div class="meta-item">🗓️ ${new Date(item.timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div class="action-tray">
+                        <button class="btn-act btn-act--danger" onclick="deleteFeedback('${item.id}')">Archive (Delete)</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // GSAP Entrance Animation
+            if (window.gsap) {
+                gsap.from('.data-card', {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.4,
+                    stagger: 0.05,
+                    ease: 'power2.out',
+                    clearProps: 'all'
+                });
+            }
+        }
+
+        // --- 5. Handlers ---
+        window.manageComments = async (entryId) => {
+            if (!entryId || entryId === 'undefined') return;
+            const modal = document.getElementById('commentModModal');
+            const list = document.getElementById('commentModList');
+            if (list) list.innerHTML = '<div style="opacity:0.5; font-size:0.7rem;">Fetching echoes...</div>';
+            if (modal) modal.removeAttribute('hidden');
+
+            const { data, error } = await window.supabase.from('comments').select('id, comment_text, timestamp, user_id, entry_id').eq('entry_id', entryId).order('timestamp', { ascending: false });
+
+            if (list) {
+                if (error || !data.length) {
+                    list.innerHTML = '<div style="opacity:0.5; font-size:0.7rem;">Silence.</div>';
+                } else {
+                    list.innerHTML = data.map(c => `
+                        <div class="mod-comment-item">
+                            <div class="mod-comment-text">${escapeHtml(c.comment_text)}</div>
+                            <button class="btn-mod-delete" onclick="modDeleteComment('${c.id}', '${entryId}')">Delete</button>
+                        </div>
+                    `).join('');
+                }
+            }
+        };
+
+        window.closeCommentMod = () => {
+            const modal = document.getElementById('commentModModal');
+            if (modal) modal.hidden = true;
+        };
+
+        window.modDeleteComment = async (commentId, entryId) => {
+            if (!confirm('Delete this comment permanently?')) return;
+            const { error } = await window.supabase.from('comments').delete().eq('id', commentId);
+            if (!error) {
+                await window.supabase.rpc('decrement_comment_count', { row_id: entryId });
+                manageComments(entryId);
+                refresh();
+            }
+        };
+
+        window.banUser = async (userId) => {
+            if (!userId || userId === 'null' || userId === 'undefined') {
+                alert('No user ID found for this entry.');
+                return;
+            }
+            if (!confirm(`Ban User ID: ${userId}?\nThey will be unable to post or comment.`)) return;
+
+            const { error } = await window.supabase.from('banned_users').upsert({ user_id: userId }, { onConflict: 'user_id' });
+            if (error) {
+                console.error('Ban failed:', error);
+                alert('Ban failed: ' + error.message);
+            } else {
+                alert('User has been sanctioned.');
+                refresh(true);
+            }
+        };
+
+        window.unbanUser = async (userId) => {
+            const { error } = await window.supabase.from('banned_users').delete().eq('user_id', userId);
+            if (!error) refresh(true);
+        };
+
+        window.dismissReport = async (reportId) => {
+            const { error } = await window.supabase.from('reports').delete().eq('id', reportId);
+            if (!error) refresh(true);
+        };
+
+        window.deleteEntry = async (entryId, reportId = null) => {
+            const verb = reportId ? 'Purge this reported memory?' : 'Permanently purge this record?';
+            if (!confirm(verb + ' This action is absolute.')) return;
+
+            if (entryId && entryId !== 'undefined') {
+                const { error } = await window.supabase.from('entries').delete().eq('id', entryId);
+                if (error) alert('Purge failed: ' + error.message);
+            }
+            if (reportId) await window.supabase.from('reports').delete().eq('id', reportId);
+            refresh(true);
+        };
+
+        window.deleteFeedback = async (id) => {
+            if (!confirm('Archive this echo? It will be removed from your sight.')) return;
+            const { error } = await window.supabase.from('site_feedback').delete().eq('id', id);
+            if (error) {
+                console.error('Delete Feedback Error:', error);
+                alert('Archive failed: ' + error.message);
+            } else {
+                refresh(true);
+            }
+        };
+
+        window.viewOnMap = (lat, lng) => {
+            localStorage.setItem('sonder-nav-lat', lat);
+            localStorage.setItem('sonder-nav-lng', lng);
+            window.open('map.html', '_blank');
+        };
+
+        // --- DASHBOARD LOGIC ---
+        let dashboardCharts = { pie: null, line: null };
+
+        async function loadDashboard() {
+            console.log('Loading Dashboard...');
+            await Promise.all([
+                loadKPIs(),
+                loadHeatmap(),
+                loadCharts(),
+                loadActivityFeed()
+            ]);
+        }
+
+        async function loadKPIs() {
+            try {
+                // Total Entries
+                const { count: totalEntries } = await window.supabase.from('entries').select('*', { count: 'exact', head: true });
+                
+                // Active Users
+                const { data: users } = await window.supabase.from('entries').select('user_id').not('user_id', 'is', null);
+                const activeUsers = new Set(users?.map(u => u.user_id)).size;
+                
+                // Total Views
+                const { data: viewData } = await window.supabase.from('entries').select('view_count');
+                const totalViews = viewData?.reduce((sum, e) => sum + (e.view_count || 0), 0) || 0;
+                
+                // Pending Reports
+                const { count: reports } = await window.supabase.from('reports').select('*', { count: 'exact', head: true });
+
+                // Animate counters
+                animateCounter('kpiTotalEntries', totalEntries || 0);
+                animateCounter('kpiActiveUsers', activeUsers || 0);
+                animateCounter('kpiTotalViews', totalViews);
+                animateCounter('kpiReports', reports || 0);
+
+                // Update trends (simple mock for now)
+                document.querySelector('#kpiTotalEntries').nextElementSibling.textContent = '→ Stable';
+                document.querySelector('#kpiActiveUsers').nextElementSibling.textContent = '↑ Growing';
+                document.querySelector('#kpiTotalViews').nextElementSibling.textContent = '→ Stable';
+                document.querySelector('#kpiReports').nextElementSibling.className = reports > 0 ? 'kpi-trend negative' : 'kpi-trend positive';
+                document.querySelector('#kpiReports').nextElementSibling.textContent = reports > 0 ? `↑ ${reports} pending` : '✓ All clear';
+            } catch (e) {
+                console.error('KPI Load Error:', e);
+            }
+        }
+
+        function animateCounter(elementId, target) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            
+            let current = 0;
+            const increment = target / 30;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    el.textContent = Math.round(target);
+                    clearInterval(timer);
+                } else {
+                    el.textContent = Math.round(current);
+                }
+            }, 30);
+        }
+
+        async function loadHeatmap() {
+            try {
+                const thirtyDaysAgo = new Date(Date.now() - (30 * 24 * 60 * 60 * 1000)).toISOString();
+                const { data } = await window.supabase.from('entries').select('timestamp').gt('timestamp', thirtyDaysAgo);
+                
+                // Count entries per day
+                const counts = {};
+                data?.forEach(entry => {
+                    const date = entry.timestamp.split('T')[0];
+                    counts[date] = (counts[date] || 0) + 1;
+                });
+
+                // Generate 30 days
+                const container = document.getElementById('activityHeatmap');
+                if (!container) return;
+                container.innerHTML = '';
+
+                for (let i = 29; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const dateKey = d.toISOString().split('T')[0];
+                    const count = counts[dateKey] || 0;
+                    
+                    const level = count === 0 ? 0 : Math.min(Math.ceil(count / 2), 5);
+                    
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    cell.setAttribute('data-level', level);
+                    cell.title = `${dateKey}: ${count} entries`;
+                    container.appendChild(cell);
+                }
+            } catch (e) {
+                console.error('Heatmap Load Error:', e);
+            }
+        }
+
+        async function loadCharts() {
+            try {
+                // Content Distribution Pie Chart
+                const { data: entries } = await window.supabase.from('entries').select('image, thumbnail, song, song_title, artist');
+                
+                let textOnly = 0, withImages = 0, withSongs = 0, withBoth = 0;
+                entries?.forEach(e => {
+                    const hasImage = !!(e.image || e.thumbnail);
+                    const hasSong = !!(e.song || e.song_title || e.artist);
+                    if (hasImage && hasSong) withBoth++;
+                    else if (hasImage) withImages++;
+                    else if (hasSong) withSongs++;
+                    else textOnly++;
+                });
+
+                const pieCtx = document.getElementById('contentPieChart');
+                if (pieCtx && window.Chart) {
+                    if (dashboardCharts.pie) dashboardCharts.pie.destroy();
+                    dashboardCharts.pie = new Chart(pieCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Text Only', 'With Images', 'With Songs', 'With Both'],
+                            datasets: [{
+                                data: [textOnly, withImages, withSongs, withBoth],
+                                backgroundColor: ['#a29bfe', '#fd79a8', '#feca57', '#55efc4'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, position: 'bottom', labels: { color: '#888', font: { size: 10 } } }
+                            }
+                        }
+                    });
+                }
+
+                // User Growth Line Chart (30 days)
+                const thirtyDaysAgo = new Date(Date.now() - (30 * 24 * 60 * 60 * 1000)).toISOString();
+                const { data: recentEntries } = await window.supabase.from('entries').select('timestamp, user_id').gt('timestamp', thirtyDaysAgo).order('timestamp');
+                
+                const usersByWeek = {};
+                recentEntries?.forEach(e => {
+                    const weekNum = Math.floor((Date.now() - new Date(e.timestamp)) / (7 * 24 * 60 * 60 * 1000));
+                    const weekKey = `Week ${4 - weekNum}`;
+                    if (!usersByWeek[weekKey]) usersByWeek[weekKey] = new Set();
+                    usersByWeek[weekKey].add(e.user_id);
+                });
+
+                const lineCtx = document.getElementById('userGrowthChart');
+                if (lineCtx && window.Chart) {
+                    if (dashboardCharts.line) dashboardCharts.line.destroy();
+                    dashboardCharts.line = new Chart(lineCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                            datasets: [{
+                                label: 'Active Users',
+                                data: [
+                                    usersByWeek['Week 1']?.size || 0,
+                                    usersByWeek['Week 2']?.size || 0,
+                                    usersByWeek['Week 3']?.size || 0,
+                                    usersByWeek['Week 4']?.size || 0
+                                ],
+                                borderColor: '#6edff6',
+                                backgroundColor: 'rgba(110, 223, 246, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#888' } },
+                                x: { grid: { display: false }, ticks: { color: '#888' } }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Charts Load Error:', e);
+            }
+        }
+
+        async function loadActivityFeed() {
+            try {
+                const { data: recentEntries } = await window.supabase.from('entries').select('timestamp, lat, lng').order('timestamp', { ascending: false }).limit(20);
+                
+                const feed = document.getElementById('activityFeed');
+                if (!feed) return;
+                feed.innerHTML = '';
+
+                if (!recentEntries || recentEntries.length === 0) {
+                    feed.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">No recent activity</div>';
+                    return;
+                }
+
+                recentEntries.forEach(entry => {
+                    const timeAgo = getTimeAgo(entry.timestamp);
+                    
+                    // Use coordinates for location
+                    let locationName = 'Unknown location';
+                    if (entry.lat && entry.lng) {
+                        locationName = `${entry.lat.toFixed(2)}°, ${entry.lng.toFixed(2)}°`;
+                    }
+                    
+                    const item = document.createElement('div');
+                    item.className = 'activity-item';
+                    item.innerHTML = `
+                        <div class="activity-icon">📝</div>
+                        <div class="activity-text">
+                            <strong>New memory</strong> planted at ${escapeHtml(locationName)}
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    `;
+                    feed.appendChild(item);
+                });
+            } catch (e) {
+                console.error('Activity Feed Error:', e);
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - new Date(timestamp)) / 1000);
+            if (seconds < 60) return `${seconds}s ago`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            return `${days}d ago`;
+        }
+
+        // --- BULK SELECTION LOGIC ---
+        function updateBulkSelection() {
+            const checkboxes = document.querySelectorAll('.card-checkbox');
+            const checked = Array.from(checkboxes).filter(cb => cb.checked);
+            const bulkBar = document.getElementById('bulkActionsBar');
+            const countSpan = document.getElementById('bulkSelectedCount');
+            
+            if (checked.length > 0) {
+                bulkBar.style.display = 'flex';
+                countSpan.textContent = checked.length;
+                
+                // Highlight selected cards
+                checkboxes.forEach(cb => {
+                    const card = cb.closest('.data-card');
+                    if (cb.checked) {
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                });
+            } else {
+                bulkBar.style.display = 'none';
+                document.querySelectorAll('.data-card').forEach(card => card.classList.remove('selected'));
+            }
+        }
+
+        window.selectAll = function() {
+            document.querySelectorAll('.card-checkbox').forEach(cb => cb.checked = true);
+            updateBulkSelection();
+        };
+
+        window.deselectAll = function() {
+            document.querySelectorAll('.card-checkbox').forEach(cb => cb.checked = false);
+            updateBulkSelection();
+        };
+
+        window.bulkDismiss = async function() {
+            const checked = Array.from(document.querySelectorAll('.card-checkbox:checked'));
+            if (!checked.length) return;
+            
+            if (!confirm(`Dismiss ${checked.length} report(s)?`)) return;
+            
+            const reportIds = checked.map(cb => cb.dataset.id).filter(id => id);
+            
+            for (const id of reportIds) {
+                await window.supabase.from('reports').delete().eq('id', id);
+            }
+            
+            deselectAll();
+            refresh(true);
+        };
+
+        window.bulkPurge = async function() {
+            const checked = Array.from(document.querySelectorAll('.card-checkbox:checked'));
+            if (!checked.length) return;
+            
+            if (!confirm(`⚠️ PURGE ${checked.length} entries? This action is IRREVERSIBLE.`)) return;
+            
+            const entryIds = checked.map(cb => cb.dataset.entryId).filter(id => id);
+            const reportIds = checked.map(cb => cb.dataset.id).filter(id => id);
+            
+            for (const entryId of entryIds) {
+                await window.supabase.from('entries').delete().eq('id', entryId);
+            }
+            
+            for (const reportId of reportIds) {
+                await window.supabase.from('reports').delete().eq('id', reportId);
+            }
+            
+            deselectAll();
+            refresh(true);
+        };
+
+        boot();
+    </script>
+</body>
+
+</html>

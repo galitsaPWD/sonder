@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-page="about">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SONDER · about</title>
+  <link rel="stylesheet" href="sonder.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <meta name="description" content="Discover SONDER - an interactive map of human emotions. Every stranger has a story as vivid as your own. Learn about our mission and the technology behind this quiet experiment." />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sonder-map.com/about.html" />
+  <meta property="og:title" content="About SONDER · Every Stranger has a Story" />
+  <meta property="og:description" content="Learn about SONDER, a quiet place to leave things behind. Poems, memories, songs, and fleeting moments from across the globe." />
+  <meta property="og:image" content="https://sonder-map.com/og-image-about.jpg" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <style>
+    .about-hero {
+      padding: clamp(4rem, 15vh, 8rem) 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .about-hero::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 150%;
+      height: 150%;
+      background: radial-gradient(circle, var(--color-accent-soft) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      opacity: 0.15;
+      z-index: -1;
+      filter: blur(80px);
+    }
+
+    .about-panel {
+      position: relative;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .about-panel {
+        transition: none;
+      }
+    }
+
+    .about-panel:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+    }
+
+    .about-section {
+      margin-bottom: 3rem;
+    }
+
+    .about-text--muted {
+      opacity: 0.7;
+      font-size: 0.95rem;
+    }
+
+    .btn--kofi {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #29abe0;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .btn--kofi:hover {
+      background: #1d8fbe;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 10px 20px rgba(41, 171, 224, 0.3);
+    }
+
+    .btn--kofi img {
+      height: 24px;
+    }
+  </style>
+</head>
+
+<body class="sonder-body sonder-body--about">
+  <header class="site-header">
+    <div class="site-header__logo" style="cursor: pointer" onclick="window.location.href='index.html'">SONDER</div>
+    <nav class="site-header__nav">
+      <a href="about.html">about</a>
+      <a href="map.html">map</a>
+      <a href="archive.html">archive</a>
+      <a href="playlist.html">playlist</a>
+      <button id="notificationsBtn" class="notifications-btn" title="Notifications" aria-label="notifications">
+        <span class="notifications-btn__icon">⩍</span>
+        <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Mode Switch" aria-label="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <main class="section">
+    <div class="section__inner">
+      <h1 class="page-title">about sonder</h1>
+
+      <div class="glass-panel about-panel fade-up-delay-2">
+        <section class="about-section">
+          <h2 class="section-title">the concept</h2>
+          <p class="about-text max-w-[65ch] line-height-1-6">
+            sonder is the realization that every passerby has a life as vivid and complex as your own. this project is a
+            space to notice that.
+          </p>
+        </section>
+
+        <section class="about-section">
+          <h2 class="section-title">the intent</h2>
+          <p class="about-text max-w-[65ch] line-height-1-6">
+            a quiet place to leave things behind. poems, memories, songs, moments. nothing here asks for your name, only
+            what the world feels like from where you are standing.
+          </p>
+        </section>
+
+        <section class="about-section">
+          <h2 class="section-title">credits</h2>
+          <p class="about-text about-text--muted max-w-[65ch] line-height-1-6">
+            built with leaflet.js, supabase, openstreetmap, cartodb, spotify web api, and a lot of late-night
+            energy.
+          </p>
+        </section>
+
+        <section class="about-section">
+          <h2 class="section-title">support the project</h2>
+          <p class="about-text max-w-[65ch] line-height-1-6">
+            sonder is a personal project. if you’d like to help keep the server running or contribute to a future domain,
+            consider buying me a coffee.
+          </p>
+          <a href='https://ko-fi.com/I3I71PZ3NX' target='_blank' class='btn--kofi'>
+            <img src='https://storage.ko-fi.com/cdn/cup-border.png' alt='Ko-fi cup' />
+            buy me a coffee
+          </a>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">SONDER</div>
+      <p class="site-footer__tagline">every stranger has a story as vivid as your own</p>
+      <nav class="site-footer__nav">
+        <a href="map.html">map</a>
+        <a href="about.html">about</a>
+        <a href="archive.html">archive</a>
+        <a href="playlist.html">playlist</a>
+        <a href="my-entries.html">my entries</a>
+        <a href="https://ko-fi.com/I3I71PZ3NX" target="_blank">support</a>
+      </nav>
+      <p class="site-footer__copyright">© 2025 SONDER. All moments preserved.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="src/main.js"></script>
+  <script src="loader.js"></script>
+</body>
+
+</html>

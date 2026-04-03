@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-page="playlist">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SONDER · playlist</title>
+  <link rel="stylesheet" href="sonder.css" />
+  <link rel="stylesheet" href="playlist.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <meta name="description" content="SONDER Playlist - The soundtrack of human moments. Listen to the songs that travelers have left behind across the map." />
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="SONDER Playlist · Songs of Elsewhere" />
+  <meta property="og:description" content="A community-curated collection of songs discovered on the SONDER map. Experience the music of strangers." />
+  <meta property="og:image" content="https://sonder-map.com/og-playlist.jpg" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
+</head>
+
+<body class="sonder-body sonder-body--playlist">
+  <header class="site-header site-header--overlay">
+    <div class="site-header__logo" onclick="window.location.href='index.html'">SONDER</div>
+    <nav class="site-header__nav">
+      <a href="about.html">about</a>
+      <a href="map.html">map</a>
+      <a href="archive.html">archive</a>
+      <a href="playlist.html">playlist</a>
+      <button id="notificationsBtn" class="notifications-btn" title="Notifications" aria-label="notifications">
+        <span class="notifications-btn__icon">⩍</span>
+        <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Mode Switch" aria-label="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <main class="section">
+    <div class="section__inner">
+      <div class="playlist-header">
+        <h1 class="page-title">playlist</h1>
+        <p class="page-subtitle">what we were listening to.</p>
+      </div>
+
+      <div id="playlistList" class="playlist-list fade-up-delay-2">
+        <!-- JS loads here -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="playlistEmpty" hidden>
+        <div class="empty-state__icon">♪┏(・o･)┛♪</div>
+        <h3 class="empty-state__title">no songs yet</h3>
+        <p class="empty-state__text">shared songs from the map will appear here</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">SONDER</div>
+      <p class="site-footer__tagline">every stranger has a story as vivid as your own</p>
+      <nav class="site-footer__nav">
+        <a href="map.html">map</a>
+        <a href="about.html">about</a>
+        <a href="archive.html">archive</a>
+        <a href="playlist.html">playlist</a>
+        <a href="my-entries.html">my entries</a>
+        <a href="https://ko-fi.com/I3I71PZ3NX" target="_blank">support</a>
+      </nav>
+      <p class="site-footer__copyright">© 2025 SONDER. All moments preserved.</p>
+    </div>
+  </footer>
+
+  <div class="playlist-wave"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="src/main.js"></script>
+  <script src="loader.js"></script>
+
+  <!-- Notifications Modal -->
+  <div class="modal-overlay modal-overlay--notifications" id="notificationsModal" hidden>
+    <div class="modal modal--notifications">
+      <div class="modal__header">
+        <h2 class="modal__title">notifications</h2>
+        <button id="notificationsModalClose" class="modal__close">×</button>
+      </div>
+      <div class="modal__body">
+        <div id="notificationsList" class="notifications-list">
+          <!-- Notifications populated by JS -->
+        </div>
+        <div id="notificationsEmpty" class="notifications-empty" hidden>
+          <div class="notifications-empty__icon">૮(˶ㅠ︿ㅠ)ა</div>
+          <p class="notifications-empty__title">no notifications yet</p>
+          <p class="notifications-empty__text">you'll be notified when someone posts near your memories.</p>
+        </div>
+        <div class="modal__footer"
+          style="margin-top: 1.5rem; display: flex; justify-content: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 1.5rem;">
+          <button id="notificationsClearAll" class="btn btn--ghost btn--sm"
+            style="font-size: 0.75rem; opacity: 0.8;">clear all notifications</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
