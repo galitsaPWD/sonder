@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f4f0;
+  --surface: #ffffff;
+  --text-primary: #111110;
+  --text-secondary: #6b6b67;
+  --text-muted: #a8a8a4;
+  --border: rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --background: #111110;
+  --surface: #1e1e1c;
+  --text-primary: #f0efeb;
+  --text-secondary: #9b9b97;
+  --text-muted: #555553;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  
+  --font-inter: var(--font-inter);
+}
+
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  cursor: none;
+}
+
+a, button, [role="button"] {
+  cursor: none !important;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body, section, article, div, p, span, h1, h2, h3, a, button, svg {
+    transition-property: background-color, color, border-color, stroke, fill;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+  }
+
+  #custom-cursor, #custom-cursor * {
+    transition: none !important;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
